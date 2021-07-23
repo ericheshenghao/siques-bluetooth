@@ -63,12 +63,13 @@ public class BluetoothServer  implements Runnable {
         while(true){
             try {
                 if (((size = is.read(bytes)) == -1)) break;
+                os.write(bytes,0,size);
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            os.write(bytes,0,size);
+
+            System.out.println("当前输出："+os.toString());
         }
-        System.out.println(os.toString());
 //        textReceive.setText(os.toString());
     }
 
