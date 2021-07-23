@@ -1,9 +1,6 @@
 package cn.siques.config;
 
-import java.io.DataInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -15,7 +12,7 @@ import javax.microedition.io.Connector;
 import javax.microedition.io.StreamConnection;
 import javax.microedition.io.StreamConnectionNotifier;
 
-public class BluetoothServer {
+public class BluetoothServer  implements Runnable {
 
     // 流连接
     private static StreamConnection streamConnection = null;
@@ -23,8 +20,10 @@ public class BluetoothServer {
     //接入通知
     private static StreamConnectionNotifier notifier;
 
+    private static InputStream inputStream;
 
-    public static void startServer(String secretUUID,OnServerListener onServerListener) {
+
+    public void startServer(String secretUUID) {
 
         String url = "btspp://localhost:" +  secretUUID;
         try {
@@ -33,16 +32,44 @@ public class BluetoothServer {
                 System.out.println("请将蓝牙设置为可被发现");
 
             notifier = (StreamConnectionNotifier)Connector.open(url);
-            onServerListener.onConnected(notifier.acceptAndOpen());
+            streamConnection = notifier.acceptAndOpen();
+            inputStream = streamConnection.openInputStream();
+
+          new Thread(this).start();
         } catch (IOException e) {
             e.printStackTrace();
         }
 
     }
 
+    @Override
+    public void run() {
+        while (true){
+            readAndSet(inputStream);
+            System.out.println();
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+    }
 
-    public interface OnServerListener {
-        void onConnected(StreamConnection streamConnection);
+
+    private void readAndSet(InputStream is){
+        byte[] bytes = new byte[1024];
+        int size = 0;
+        ByteArrayOutputStream os = new ByteArrayOutputStream();
+        while(true){
+            try {
+                if (((size = is.read(bytes)) == -1)) break;
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            os.write(bytes,0,size);
+        }
+        System.out.println(os.toString());
+//        textReceive.setText(os.toString());
     }
 
 }

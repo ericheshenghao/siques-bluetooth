@@ -110,30 +110,11 @@ public class BluetoothConnector implements Initializable {
 
     private void startServer() {
         Thread thread = new Thread(() -> {
-            BluetoothServer.startServer(secretUUID, streamConnection -> {
-                try {
-                    InputStream is = streamConnection.openInputStream();
-                    readAndSet(is);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            });
+            BluetoothServer bluetoothServer = new BluetoothServer();
+            bluetoothServer.startServer(secretUUID);
         });
         thread.start();
     }
 
-    private void readAndSet(InputStream is){
-        byte[] bytes = new byte[1024];
-        int size = 0;
-        ByteArrayOutputStream os = new ByteArrayOutputStream();
-        while(true){
-            try {
-                if (!((size = is.read(bytes))!=-1)) break;
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            os.write(bytes,0,size);
-        }
-        textReceive.setText(os.toString());
-    }
+
 }
