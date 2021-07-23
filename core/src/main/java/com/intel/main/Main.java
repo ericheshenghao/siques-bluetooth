@@ -1,4 +1,4 @@
-package cn.siques;
+package com.intel.main;
 
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
@@ -25,6 +25,11 @@ public class Main extends Application {
         Scene scene = new Scene(root);
         primaryStage.setScene(scene);
         primaryStage.show();
+    }
+
+    @Override
+    public void stop() throws Exception {
+        super.stop();
     }
 
     public static void main(String[] args) {

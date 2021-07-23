@@ -1,4 +1,4 @@
-package cn.siques.config;
+package com.intel.bluetooth;
 
 import java.io.*;
 import java.util.Set;

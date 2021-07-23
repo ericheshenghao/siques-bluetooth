@@ -1,10 +1,6 @@
-package cn.siques.util;
+package com.intel.bluetooth.util;
 
-import cn.siques.config.RemoteDeviceDiscovery;
 import javafx.application.Platform;
-
-import javax.bluetooth.RemoteDevice;
-import java.util.Vector;
 
 /**
  * @author: 何胜豪

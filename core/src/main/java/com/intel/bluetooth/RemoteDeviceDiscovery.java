@@ -1,4 +1,4 @@
-package cn.siques.config;
+package com.intel.bluetooth;
 
 import java.io.IOException;
 import java.util.*;
@@ -33,6 +33,7 @@ public class RemoteDeviceDiscovery {
                 discoveryLock.notifyAll();
             }
         }
+
 
         @Override
         public void deviceDiscovered(RemoteDevice remoteDevice, DeviceClass deviceClass) {

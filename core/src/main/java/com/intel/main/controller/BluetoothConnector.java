@@ -1,31 +1,24 @@
-package cn.siques.controller;
+package com.intel.main.controller;
 
 
-import cn.siques.config.BluetoothClient;
-import cn.siques.config.BluetoothServer;
-import cn.siques.config.RemoteDeviceDiscovery;
-import cn.siques.util.Later;
-import javafx.application.Platform;
+import com.intel.bluetooth.BluetoothClient;
+import com.intel.bluetooth.BluetoothServer;
+import com.intel.bluetooth.RemoteDeviceDiscovery;
+import com.intel.bluetooth.RemoteDeviceHelper;
+import com.intel.bluetooth.util.Later;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
-import javafx.scene.input.MouseEvent;
-import lombok.SneakyThrows;
 
 import javax.bluetooth.RemoteDevice;
 import javax.microedition.io.StreamConnection;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URL;
 import java.nio.charset.Charset;
-import java.rmi.Remote;
-import java.rmi.server.RemoteServer;
-import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.Vector;
 
@@ -60,8 +53,6 @@ public class BluetoothConnector implements Initializable {
     }
 
 
-
-
     public void doConnect(ActionEvent actionEvent) {
         RemoteDevice device = toothList.getSelectionModel().getSelectedItem();
         if(device!=null){
@@ -69,12 +60,16 @@ public class BluetoothConnector implements Initializable {
         }
     }
 
+    public void doClose(ActionEvent actionEvent) {
+
+    }
+
     public void doSend(ActionEvent actionEvent) throws IOException {
-        StreamConnection  con =  BluetoothClient.streamConnection;
-        if(con!=null){
-            OutputStream outputStream = con.openOutputStream();
+        OutputStream os =  BluetoothClient.outputStream;
+        if(os != null){
             byte[] bytes = this.textSend.getText().getBytes(Charset.forName("utf-8"));
-            outputStream.write(bytes);
+            os.write(bytes);
+            os.flush();
         }
     }
 
@@ -115,6 +110,7 @@ public class BluetoothConnector implements Initializable {
         });
         thread.start();
     }
+
 
 
 }
