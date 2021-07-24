@@ -28,13 +28,6 @@ public class BluetoothClient {
             try {
                 String url = RemoteDeviceDiscovery.searchService(remoteDevice, serviceUUID);
                 if(url != null) {
-//                    BluetoothStack bluetoothStack = BlueCoveImpl.instance().getBluetoothStack();
-
-
-//                    long address = RemoteDeviceHelper.getAddress(remoteDevice.getBluetoothAddress());
-//                    BluetoothConnectionParams params = new BluetoothConnectionParams(address, 1, false, false);
-//                    BluetoothRFCommClientConnection connection = new BluetoothRFCommClientConnection(bluetoothStack, params);
-//                    connection.close();
                     streamConnection = (BluetoothRFCommClientConnection ) Connector.open(url);
                     outputStream = streamConnection.openOutputStream();
 

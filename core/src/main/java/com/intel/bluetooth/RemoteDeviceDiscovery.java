@@ -76,7 +76,7 @@ public class RemoteDeviceDiscovery {
 
             }
         }catch(Exception e){
-            e.printStackTrace();
+            System.out.println("请勿重复刷新");
         }
         return devicesDiscovered;
     }

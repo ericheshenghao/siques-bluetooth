@@ -27,7 +27,7 @@ public class BluetoothServer  implements Runnable {
             int discoverable = localDevice.getDiscoverable();
 
             if (discoverable != DiscoveryAgent.GIAC) {
-                System.out.println("请将蓝牙设置为可被发现");
+                localDevice.setDiscoverable(DiscoveryAgent.GIAC);
             }
 
             notifier = (StreamConnectionNotifier)Connector.open(url);
