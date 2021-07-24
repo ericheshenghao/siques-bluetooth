@@ -1,10 +1,11 @@
 package com.intel.main.controller;
 
 
-import com.intel.bluetooth.BluetoothClient;
-import com.intel.bluetooth.BluetoothServer;
-import com.intel.bluetooth.RemoteDeviceDiscovery;
-import com.intel.bluetooth.RemoteDeviceHelper;
+import com.intel.bluetooth.*;
+import com.intel.bluetooth.constant.ConnectStatus;
+import com.intel.bluetooth.entity.CustomRemoteDevice;
+import com.intel.bluetooth.exception.ServiceNotFoundException;
+import com.intel.bluetooth.util.Faker;
 import com.intel.bluetooth.util.Later;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -12,10 +13,10 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
+import javafx.scene.input.MouseEvent;
+import javafx.scene.shape.Circle;
+import javafx.scene.text.Text;
 
-import javax.bluetooth.RemoteDevice;
-import javax.microedition.io.StreamConnection;
-import java.io.IOException;
 import java.io.OutputStream;
 import java.net.URL;
 import java.nio.charset.Charset;
@@ -33,18 +34,33 @@ public class BluetoothConnector implements Initializable {
     final String secretUUID = "1000110100001000800000805F9B34FB";
 
     @FXML
-    private ListView<RemoteDevice> toothList;
+    private ListView<CustomRemoteDevice> toothList;
 
     @FXML
-    private ProgressIndicator progress;
+    private ProgressIndicator progressIndicator;
+
+    @FXML
+    private ProgressBar progressBar;
+
+    @FXML
+    private Button refreshBtn;
+
+    @FXML
+    private Button sendBtn;
+
+    @FXML Label deviceName;
 
     @FXML
     private TextArea textSend;
 
-    @FXML
-    private TextArea textReceive;
 
-    ObservableList<RemoteDevice> data  =
+    @FXML
+    private Circle connectOnline;
+
+    @FXML
+    private Text connectText;
+
+    ObservableList<CustomRemoteDevice> data  =
             FXCollections.observableArrayList();
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -53,26 +69,19 @@ public class BluetoothConnector implements Initializable {
     }
 
 
-    public void doConnect(ActionEvent actionEvent) {
-        RemoteDevice device = toothList.getSelectionModel().getSelectedItem();
-        if(device != null){
-            BluetoothClient.startClient(device, secretUUID);
-        }
-    }
-
-    public void doClose(ActionEvent actionEvent) {
-
-    }
-
-    public void doSend(ActionEvent actionEvent) throws IOException {
-        OutputStream os =  BluetoothClient.outputStream;
+    public void doSend(ActionEvent actionEvent)  {
+        OutputStream os = ConnectionPool.getInstance().getOS(deviceName.getText());
         if(os != null){
             byte[] bytes = this.textSend.getText().getBytes(Charset.forName("utf-8"));
             try{
                 os.flush();
                 os.write(bytes);
-
             }catch (Exception e){
+                sendBtn.setDisable(true);
+                connectOnline.setVisible(false);
+                connectText.setText(ConnectStatus.OFF_LINE.getSt());
+                //删除流
+                ConnectionPool.getInstance().deleteOS(deviceName.getText());
                 System.out.println("连接已关闭，请重新连接");
             }
         }
@@ -83,30 +92,86 @@ public class BluetoothConnector implements Initializable {
     }
 
     private void getToothList() {
-        Thread thread = new Thread(() -> {
-            Vector<RemoteDevice> devices = RemoteDeviceDiscovery.findDevices();
+        if(progressIndicator.isVisible()) {
+            return;
+        }
+        progressIndicator.setVisible(true);
+        Thread fakeTd = Faker.fakeProgress(progressIndicator);
+        new Thread(() -> {
             Later.run(()->{
                 data.clear();
+                toothList.setItems(data);
+            });
+            Vector<CustomRemoteDevice> devices = RemoteDeviceDiscovery.findDevices();
+            Later.run(()->{
+                fakeTd.interrupt();
+
                 data.addAll(devices);
                 toothList.setItems(data);
-                toothList.setCellFactory((ListView<RemoteDevice> l) -> new ListCell<RemoteDevice>(){
+
+                toothList.setCellFactory((ListView<CustomRemoteDevice> l) -> new ListCell<CustomRemoteDevice>(){
+
                     @Override
-                    protected void updateItem(RemoteDevice item, boolean empty) {
+                    protected void updateItem(CustomRemoteDevice item, boolean empty) {
+                        setOnMouseClicked((event -> {
+                            event.getSource();
+                            doConnect(event);
+                        }
+                        ));
                         super.updateItem(item, empty);
-                        try {
-                            if(null != item ){
-                                setText(item.getFriendlyName(false));
-                            }
-                        } catch (IOException e) {
-                            e.printStackTrace();
+
+                        if(null != item ){
+                            setText(item.getDeviceName());
                         }
                     }
                 });
             });
-        });
-        thread.start();
+        }).start();
+
     }
 
+
+    public void doConnect(MouseEvent actionEvent)  {
+        CustomRemoteDevice device = toothList.getSelectionModel().getSelectedItem();
+        if(device == null) {
+            return;
+        }
+        OutputStream os = ConnectionPool.getInstance().getOS(device.getDeviceName());
+        if(os != null){
+            sendBtn.setDisable(false);
+            connectOnline.setVisible(true);
+            deviceName.setText(device.getDeviceName());
+            connectText.setText(ConnectStatus.ON_LINE.getSt());
+            return;
+        }
+        toothList.setDisable(true);
+        refreshBtn.setDisable(true);
+        connectOnline.setVisible(false);
+        sendBtn.setDisable(true);
+        connectText.setText(ConnectStatus.CONNECTING.getSt());
+        deviceName.setText(device.getDeviceName());
+        progressBar.setVisible(true);
+        Thread fakeTd = Faker.fakeProgress(progressBar);
+          new Thread(()->{
+
+              try {
+                  BluetoothClient.startClient(device, secretUUID);
+                  connectText.setText(ConnectStatus.ON_LINE.getSt());
+                  connectOnline.setVisible(true);
+                  sendBtn.setDisable(false);
+                  textSend.setDisable(false);
+              } catch (ServiceNotFoundException e) {
+                  // 未找到服务
+                  e.printStackTrace();
+                  connectText.setText(ConnectStatus.ERROR_LINE.getSt());
+              }finally {
+                  fakeTd.interrupt();
+                  toothList.setDisable(false);
+                  refreshBtn.setDisable(false);
+              }
+
+          }).start();
+    }
 
     private void startServer() {
         Thread thread = new Thread(() -> {

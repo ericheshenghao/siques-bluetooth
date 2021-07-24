@@ -1,23 +1,20 @@
 package com.intel.bluetooth;
 
+import com.intel.bluetooth.entity.CustomRemoteDevice;
+import com.intel.bluetooth.exception.ServiceNotFoundException;
+import lombok.SneakyThrows;
+
 import java.io.IOException;
 import java.util.*;
 
-import javax.bluetooth.DeviceClass;
-import javax.bluetooth.DiscoveryAgent;
-import javax.bluetooth.DiscoveryListener;
-import javax.bluetooth.LocalDevice;
-import javax.bluetooth.RemoteDevice;
-import javax.bluetooth.ServiceRecord;
-
-import javax.bluetooth.DataElement;
+import javax.bluetooth.*;
 import javax.bluetooth.UUID;
 
 /**
  * @author he
  */
 public class RemoteDeviceDiscovery {
-    public  static Vector<RemoteDevice> devicesDiscovered = new Vector<>();
+    public  static Vector<CustomRemoteDevice> devicesDiscovered = new Vector<>();
 
     public  static Vector<String> serviceFound = new Vector<>();
 
@@ -35,9 +32,15 @@ public class RemoteDeviceDiscovery {
         }
 
 
+        @SneakyThrows
         @Override
         public void deviceDiscovered(RemoteDevice remoteDevice, DeviceClass deviceClass) {
-            devicesDiscovered.add(remoteDevice);
+
+            CustomRemoteDevice device = CustomRemoteDevice.builder().remoteDevice(remoteDevice)
+                    .address(remoteDevice.getBluetoothAddress())
+                    .deviceName(remoteDevice.getFriendlyName(false))
+                    .deviceClass(deviceClass).build();
+            devicesDiscovered.add(device);
 
         }
         @Override
@@ -62,10 +65,13 @@ public class RemoteDeviceDiscovery {
     };
 
 
-    public static Vector<RemoteDevice> findDevices()   {
+    public static Vector<CustomRemoteDevice> findDevices()   {
+
+        LocalDevice ld = null;
         try {
-            LocalDevice ld = LocalDevice.getLocalDevice();
-            System.out.println("#本机蓝牙名称:" + ld.getFriendlyName());
+            ld = LocalDevice.getLocalDevice();
+
+        System.out.println("#本机蓝牙名称:" + ld.getFriendlyName());
             synchronized (discoveryLock){
                 devicesDiscovered.clear();
                 boolean started  = ld.getDiscoveryAgent().startInquiry(DiscoveryAgent.GIAC, listener);
@@ -75,30 +81,32 @@ public class RemoteDeviceDiscovery {
                 }
 
             }
-        }catch(Exception e){
-            System.out.println("请勿重复刷新");
+        } catch (BluetoothStateException | InterruptedException e) {
+            e.printStackTrace();
         }
-        return devicesDiscovered;
+          return devicesDiscovered;
     }
 
 
 
-    public static String searchService(RemoteDevice btDevice, String serviceUUID) throws IOException {
+    public static String searchService(RemoteDevice btDevice, String serviceUUID) throws ServiceNotFoundException{
         UUID[] searchUuidSet = new UUID[] { new UUID(serviceUUID, false) };
 
         int[] attrIDs =  new int[] {0x0100};
 
         synchronized (searchLock){
-            System.out.println("search services on " + btDevice.getBluetoothAddress() + " " + btDevice.getFriendlyName(false));
-            LocalDevice.getLocalDevice().getDiscoveryAgent().searchServices(attrIDs, searchUuidSet, btDevice, listener);
             try {
+                LocalDevice.getLocalDevice().getDiscoveryAgent().searchServices(attrIDs, searchUuidSet, btDevice, listener);
                 searchLock.wait();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
+            } catch (BluetoothStateException | InterruptedException e) {
+                throw new ServiceNotFoundException(e);
             }
         }
+        if(serviceFound.size()==0) {
+            throw new ServiceNotFoundException("服务未启动");
+        }
 
-        return  serviceFound.size() == 0 ? null :serviceFound.elementAt(0);
+        return serviceFound.elementAt(0);
 
     }
 }

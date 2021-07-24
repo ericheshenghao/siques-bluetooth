@@ -8,11 +8,15 @@ package com.intel.bluetooth;
  * @date : 2021/7/22 13:42
  */
 
+import com.intel.bluetooth.entity.CustomRemoteDevice;
+import com.intel.bluetooth.exception.ServiceNotFoundException;
 import com.intel.main.controller.BluetoothConnector;
 
+import javax.bluetooth.BluetoothStateException;
 import javax.bluetooth.RemoteDevice;
 import javax.microedition.io.Connector;
 import javax.microedition.io.StreamConnection;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -23,21 +27,23 @@ public class BluetoothClient {
 
     public static OutputStream outputStream;
 
-    public static  StreamConnection  startClient(RemoteDevice remoteDevice, String serviceUUID)  {
-           streamConnection = null;
-            try {
-                String url = RemoteDeviceDiscovery.searchService(remoteDevice, serviceUUID);
-                if(url != null) {
-                    streamConnection = (BluetoothRFCommClientConnection ) Connector.open(url);
-                    outputStream = streamConnection.openOutputStream();
+    public static  StreamConnection  startClient(CustomRemoteDevice device, String serviceUUID) throws ServiceNotFoundException {
+        streamConnection = null;
 
-                }else{
-                    System.out.println("搜索失败");
-                }
-            } catch (IOException e) {
-                System.out.println("客户端已连接");
-                e.printStackTrace();
-            }
+        // 服务没启动
+        String url = RemoteDeviceDiscovery.searchService(device.getRemoteDevice(), serviceUUID);
+
+        // 服务连不上
+        try {
+            streamConnection = (BluetoothRFCommClientConnection ) Connector.open(url);
+            outputStream = streamConnection.openOutputStream();
+
+            // 建立远端与输出流的关系
+            ConnectionPool.getInstance().setOS(device.getDeviceName(),outputStream);
+        } catch (IOException e) {
+            throw new ServiceNotFoundException(e);
+        }
+
 
         return streamConnection;
      }

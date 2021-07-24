@@ -4,14 +4,19 @@
 <?import javafx.scene.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
+<?import javafx.scene.shape.*?>
+<?import javafx.scene.text.*?>
 
 <AnchorPane prefHeight="568.0" prefWidth="776.0" xmlns="http://javafx.com/javafx/11.0.2" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.intel.main.controller.BluetoothConnector">
    <children>
-      <TextArea fx:id="textSend" layoutX="214.0" layoutY="385.0" prefHeight="184.0" prefWidth="561.0" />
-      <Pane disable="true" layoutX="214.0" layoutY="52.0" prefHeight="333.0" prefWidth="561.0" style="-fx-background-color: white;" />
-      <Button fx:id="sendBtn" layoutX="650.0" layoutY="531.0" mnemonicParsing="false" onAction="#doSend" prefHeight="23.0" prefWidth="105.0" text="发送" />
+      <Label fx:id="deviceName" layoutX="214.0" prefHeight="51.0" prefWidth="561.0" />
+      <Pane disable="true" layoutX="214.0" layoutY="52.0" prefHeight="333.0" prefWidth="561.0" style="-fx-background-color: white;">
+         <children>
+            <ProgressBar fx:id="progressBar" layoutX="163.0" layoutY="204.0" prefWidth="200.0" progress="0.0" visible="false" />
+         </children></Pane>
+      <TextArea fx:id="textSend" disable="true" layoutX="214.0" layoutY="385.0" prefHeight="184.0" prefWidth="561.0" />
+      <Button fx:id="sendBtn" disable="true" layoutX="650.0" layoutY="531.0" mnemonicParsing="false" onAction="#doSend" prefHeight="23.0" prefWidth="105.0" text="发送" />
       <ListView fx:id="toothList" editable="true" prefHeight="568.0" prefWidth="214.0" />
-      <ProgressIndicator fx:id="progress" layoutX="96.0" layoutY="240.0" progress="0.0" />
       <Button fx:id="refreshBtn" layoutX="137.0" layoutY="531.0" mnemonicParsing="false" onAction="#doRefresh" style="-fx-border-radius: 50%;" text="刷新列表">
          <opaqueInsets>
             <Insets />
@@ -20,6 +25,9 @@
             <Cursor fx:constant="DEFAULT" />
          </cursor>
       </Button>
-      <Label layoutX="214.0" prefHeight="51.0" prefWidth="561.0" text="Label" />
+      <ProgressIndicator fx:id="progressIndicator" layoutX="96.0" layoutY="265.0" progress="0.0" visible="false" />
+      <Circle fx:id="connectOffLine" fill="#ff2121" layoutX="695.0" layoutY="26.0" radius="8.0" stroke="BLACK" strokeType="INSIDE" strokeWidth="0.0" />
+      <Text fx:id="connectText" layoutX="713.0" layoutY="31.0" strokeType="OUTSIDE" strokeWidth="0.0" text="未连接" />
+      <Circle fx:id="connectOnline" fill="#1fff35" layoutX="695.0" layoutY="26.0" radius="8.1" stroke="WHITE" strokeType="INSIDE" strokeWidth="0.0" visible="false" />
    </children>
 </AnchorPane>
