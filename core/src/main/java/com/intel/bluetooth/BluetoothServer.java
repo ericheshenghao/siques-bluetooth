@@ -51,6 +51,7 @@ public class BluetoothServer  implements Runnable {
                 // 开新线程处理流
                 Thread thread = new Thread(() -> {
                     readAndHandle(inputStream);
+                    System.out.println("客户端已关闭");
                 });
                 // 绑定该线程与连接客户端信息
 
