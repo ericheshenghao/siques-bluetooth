@@ -82,31 +82,33 @@ public class BluetoothConnector implements Initializable {
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         getToothList();
-        new Thread(()->{
-            while (true){
-                if(deviceName.getText() != ""){
-                    List<String> msgList = ReceiveMessage.getInstance().getMsgList(deviceName.getText());
-                    receiveMsg.clear();
-                    List<TextArea> collect = msgList.stream().map(s -> {
-                        TextArea field = new TextArea(s);
+        Later.run(()->{
+            new Thread(()->{
+                while (true){
+                    if(deviceName.getText() != ""){
+                        List<String> msgList = ReceiveMessage.getInstance().getMsgList(deviceName.getText());
+                        receiveMsg.clear();
+                        List<TextArea> collect = msgList.stream().map(s -> {
+                            TextArea field = new TextArea(s);
 
-                        field.setEditable(false);
-                        field.setWrapText(true);
-                        field.setMinHeight(100);
-                        field.setMaxWidth(380);
-                        return field;
-                    }).collect(Collectors.toList());
+                            field.setEditable(false);
+                            field.setWrapText(true);
+                            field.setMinHeight(100);
+                            field.setMaxWidth(380);
+                            return field;
+                        }).collect(Collectors.toList());
 
-                    receiveMsg.addAll(collect);
-                    receiveMsgList.setItems(receiveMsg);
+                        receiveMsg.addAll(collect);
+                        receiveMsgList.setItems(receiveMsg);
+                    }
+                    try {
+                        Thread.sleep(2000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
                 }
-                try {
-                    Thread.sleep(2000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
-        }).start();
+            }).start();
+        });
         startServer();
     }
 
