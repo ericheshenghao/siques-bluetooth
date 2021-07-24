@@ -82,7 +82,7 @@ public class BluetoothConnector implements Initializable {
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         getToothList();
-        Later.run(()->{
+
             new Thread(()->{
                 while (true){
                     if(deviceName.getText() != ""){
@@ -98,8 +98,10 @@ public class BluetoothConnector implements Initializable {
                             return field;
                         }).collect(Collectors.toList());
 
-                        receiveMsg.addAll(collect);
-                        receiveMsgList.setItems(receiveMsg);
+                        Later.run(()->{
+                            receiveMsg.addAll(collect);
+                            receiveMsgList.setItems(receiveMsg);
+                        });
                     }
                     try {
                         Thread.sleep(2000);
@@ -108,7 +110,7 @@ public class BluetoothConnector implements Initializable {
                     }
                 }
             }).start();
-        });
+
         startServer();
     }
 
