@@ -3,7 +3,10 @@ package com.intel.main.controller;
 
 import com.intel.bluetooth.*;
 import com.intel.bluetooth.constant.ConnectStatus;
+import com.intel.bluetooth.entity.ConnectionPool;
 import com.intel.bluetooth.entity.CustomRemoteDevice;
+import com.intel.bluetooth.entity.ReceiveMessage;
+import com.intel.bluetooth.entity.SendMessage;
 import com.intel.bluetooth.exception.ServiceNotFoundException;
 import com.intel.bluetooth.util.Faker;
 import com.intel.bluetooth.util.Later;
@@ -20,8 +23,10 @@ import javafx.scene.text.Text;
 import java.io.OutputStream;
 import java.net.URL;
 import java.nio.charset.Charset;
+import java.util.List;
 import java.util.ResourceBundle;
 import java.util.Vector;
+import java.util.stream.Collectors;
 
 /**
  * @author: 何胜豪
@@ -35,6 +40,12 @@ public class BluetoothConnector implements Initializable {
 
     @FXML
     private ListView<CustomRemoteDevice> toothList;
+
+    @FXML
+    private ListView<TextArea> sendMsgList;
+
+    @FXML
+    private ListView<TextArea> receiveMsgList;
 
     @FXML
     private ProgressIndicator progressIndicator;
@@ -62,9 +73,40 @@ public class BluetoothConnector implements Initializable {
 
     ObservableList<CustomRemoteDevice> data  =
             FXCollections.observableArrayList();
+
+    ObservableList<TextArea> sendMsg  =
+            FXCollections.observableArrayList();
+
+    ObservableList<TextArea> receiveMsg  =
+            FXCollections.observableArrayList();
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         getToothList();
+        new Thread(()->{
+            while (true){
+                if(deviceName.getText() != ""){
+                    List<String> msgList = ReceiveMessage.getInstance().getMsgList(deviceName.getText());
+
+                    List<TextArea> collect = msgList.stream().map(s -> {
+                        TextArea field = new TextArea(s);
+
+                        field.setEditable(false);
+                        field.setWrapText(true);
+                        field.setMinHeight(100);
+                        field.setMaxWidth(380);
+                        return field;
+                    }).collect(Collectors.toList());
+
+                    receiveMsg.addAll(collect);
+                    receiveMsgList.setItems(receiveMsg);
+                }
+                try {
+                    Thread.sleep(2000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
         startServer();
     }
 
@@ -76,6 +118,18 @@ public class BluetoothConnector implements Initializable {
             try{
                 os.flush();
                 os.write(bytes);
+
+                SendMessage.getInstance().addMsg(deviceName.getText(),textSend.getText());
+                TextArea field = new TextArea(textSend.getText());
+
+                field.setEditable(false);
+                field.setWrapText(true);
+                field.setMinHeight(100);
+                field.setMaxWidth(380);
+
+                sendMsg.add(field);
+                sendMsgList.setItems(sendMsg);
+                textSend.setText("");
             }catch (Exception e){
                 sendBtn.setDisable(true);
                 connectOnline.setVisible(false);
@@ -142,6 +196,7 @@ public class BluetoothConnector implements Initializable {
             connectOnline.setVisible(true);
             deviceName.setText(device.getDeviceName());
             connectText.setText(ConnectStatus.ON_LINE.getSt());
+            initSendList();
             return;
         }
         toothList.setDisable(true);
@@ -160,6 +215,8 @@ public class BluetoothConnector implements Initializable {
                   connectOnline.setVisible(true);
                   sendBtn.setDisable(false);
                   textSend.setDisable(false);
+
+
               } catch (ServiceNotFoundException e) {
                   // 未找到服务
                   e.printStackTrace();
@@ -168,9 +225,30 @@ public class BluetoothConnector implements Initializable {
                   fakeTd.interrupt();
                   toothList.setDisable(false);
                   refreshBtn.setDisable(false);
+                  initSendList();
               }
 
           }).start();
+    }
+
+    private void initSendList() {
+        // 将发送队列重新读出，放入右列表
+        sendMsg.clear();
+        // 清空发送列表
+        List<String> msgList = SendMessage.getInstance().getMsgList(deviceName.getText());
+
+        List<TextArea> collect = msgList.stream().map(s -> {
+            TextArea field = new TextArea(s);
+
+            field.setEditable(false);
+            field.setWrapText(true);
+            field.setMinHeight(100);
+            field.setMaxWidth(380);
+            return field;
+        }).collect(Collectors.toList());
+
+        sendMsg.addAll(collect);
+        sendMsgList.setItems(sendMsg);
     }
 
     private void startServer() {

@@ -8,19 +8,14 @@ package com.intel.bluetooth;
  * @date : 2021/7/22 13:42
  */
 
+import com.intel.bluetooth.entity.ConnectionPool;
 import com.intel.bluetooth.entity.CustomRemoteDevice;
 import com.intel.bluetooth.exception.ServiceNotFoundException;
-import com.intel.main.controller.BluetoothConnector;
 
-import javax.bluetooth.BluetoothStateException;
-import javax.bluetooth.RemoteDevice;
 import javax.microedition.io.Connector;
 import javax.microedition.io.StreamConnection;
-import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
-import java.rmi.Remote;
 
 public class BluetoothClient {
     public   static BluetoothRFCommClientConnection streamConnection;

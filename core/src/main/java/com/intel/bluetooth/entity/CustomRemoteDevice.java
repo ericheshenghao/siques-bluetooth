@@ -20,4 +20,6 @@ public class CustomRemoteDevice {
     private String deviceName;
     private String address;
     private DeviceClass deviceClass;
+
+
 }

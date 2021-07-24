@@ -1,5 +1,7 @@
 package com.intel.bluetooth;
 
+import com.intel.bluetooth.entity.ReceiveMessage;
+
 import java.io.*;
 import java.util.HashMap;
 import javax.bluetooth.DiscoveryAgent;
@@ -50,7 +52,7 @@ public class BluetoothServer  implements Runnable {
 
                 // 开新线程处理流
                 Thread thread = new Thread(() -> {
-                    readAndHandle(inputStream);
+                    readAndHandle(inputStream,streamConnection);
                     System.out.println("客户端已关闭");
                 });
                 // 绑定该线程与连接客户端信息
@@ -65,10 +67,17 @@ public class BluetoothServer  implements Runnable {
     }
 
 
-    private void readAndHandle(InputStream is){
+    private void readAndHandle(InputStream is, BluetoothRFCommServerConnection streamConnection){
         byte[] bytes = new byte[1024];
         int size = 0;
         ByteArrayOutputStream os = new ByteArrayOutputStream();
+        RemoteDevice remoteDevice = streamConnection.getRemoteDevice();
+        String friendlyName = null;
+        try {
+              friendlyName = remoteDevice.getFriendlyName(false);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         while(true){
             try {
                 if (((size = is.read(bytes)) == -1)) {
@@ -78,9 +87,9 @@ public class BluetoothServer  implements Runnable {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-
+            // 将接收到的信息，与发送端的名字绑定
+            ReceiveMessage.getInstance().addMsg(friendlyName,os.toString());
             System.out.println(" 当前输出："+os.toString());
-            os.reset();
         }
 //        textReceive.setText(os.toString());
     }
