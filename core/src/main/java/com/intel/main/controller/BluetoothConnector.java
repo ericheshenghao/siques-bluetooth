@@ -87,7 +87,9 @@ public class BluetoothConnector implements Initializable {
                 while (true){
                     if(deviceName.getText() != ""){
                         List<String> msgList = ReceiveMessage.getInstance().getMsgList(deviceName.getText());
-                        receiveMsg.clear();
+                        Later.run(()->{
+                            receiveMsg.clear();
+                        });
                         List<TextArea> collect = msgList.stream().map(s -> {
                             TextArea field = new TextArea(s);
 

@@ -90,6 +90,7 @@ public class BluetoothServer  implements Runnable {
             // 将接收到的信息，与发送端的名字绑定
             ReceiveMessage.getInstance().addMsg(friendlyName,os.toString());
             System.out.println(" 当前输出："+os.toString());
+            os.reset();
         }
 //        textReceive.setText(os.toString());
     }
