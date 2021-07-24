@@ -85,25 +85,31 @@ public class BluetoothConnector implements Initializable {
 
             new Thread(()->{
                 while (true){
+                    int before = 0;
+                    int after = 0;
                     if(deviceName.getText() != ""){
                         List<String> msgList = ReceiveMessage.getInstance().getMsgList(deviceName.getText());
-                        Later.run(()->{
-                            receiveMsg.clear();
-                        });
-                        List<TextArea> collect = msgList.stream().map(s -> {
-                            TextArea field = new TextArea(s);
+                        after = msgList.size();
+                        if(before != after){
+                            Later.run(()->{
+                                receiveMsg.clear();
+                            });
+                            List<TextArea> collect = msgList.stream().map(s -> {
+                                TextArea field = new TextArea(s);
 
-                            field.setEditable(false);
-                            field.setWrapText(true);
-                            field.setMinHeight(100);
-                            field.setMaxWidth(380);
-                            return field;
-                        }).collect(Collectors.toList());
+                                field.setEditable(false);
+                                field.setWrapText(true);
+                                field.setMinHeight(100);
+                                field.setMaxWidth(380);
+                                return field;
+                            }).collect(Collectors.toList());
 
-                        Later.run(()->{
-                            receiveMsg.addAll(collect);
-                            receiveMsgList.setItems(receiveMsg);
-                        });
+                            Later.run(()->{
+                                receiveMsg.addAll(collect);
+                                receiveMsgList.setItems(receiveMsg);
+                            });
+                        }
+                        before = after;
                     }
                     try {
                         Thread.sleep(2000);
