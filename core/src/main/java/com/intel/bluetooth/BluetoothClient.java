@@ -27,25 +27,22 @@ public class BluetoothClient {
            streamConnection = null;
             try {
                 String url = RemoteDeviceDiscovery.searchService(remoteDevice, serviceUUID);
-                if(url!= "") {
-                    BluetoothStack bluetoothStack = BlueCoveImpl.instance().getBluetoothStack();
+                if(url != null) {
+//                    BluetoothStack bluetoothStack = BlueCoveImpl.instance().getBluetoothStack();
 
 
-                    long address = RemoteDeviceHelper.getAddress(remoteDevice.getBluetoothAddress());
-                    BluetoothConnectionParams params = new BluetoothConnectionParams(address, 1, false, false);
-                    BluetoothRFCommClientConnection connection = new BluetoothRFCommClientConnection(bluetoothStack, params);
-                    boolean closed = connection.isClosed();
+//                    long address = RemoteDeviceHelper.getAddress(remoteDevice.getBluetoothAddress());
+//                    BluetoothConnectionParams params = new BluetoothConnectionParams(address, 1, false, false);
+//                    BluetoothRFCommClientConnection connection = new BluetoothRFCommClientConnection(bluetoothStack, params);
+//                    connection.close();
+                    streamConnection = (BluetoothRFCommClientConnection ) Connector.open(url);
+                    outputStream = streamConnection.openOutputStream();
 
-                    if(!closed){
-                        System.out.println("未关闭，打开输出流");
-                        outputStream = connection.openOutputStream();
-                    }else{
-                        System.out.println("已关闭");
-                        streamConnection = (BluetoothRFCommClientConnection ) Connector.open(url);
-                        outputStream = streamConnection.openOutputStream();
-                    }
+                }else{
+                    System.out.println("搜索失败");
                 }
             } catch (IOException e) {
+                System.out.println("客户端已连接");
                 e.printStackTrace();
             }
 

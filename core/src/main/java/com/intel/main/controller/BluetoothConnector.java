@@ -55,7 +55,7 @@ public class BluetoothConnector implements Initializable {
 
     public void doConnect(ActionEvent actionEvent) {
         RemoteDevice device = toothList.getSelectionModel().getSelectedItem();
-        if(device!=null){
+        if(device != null){
             BluetoothClient.startClient(device, secretUUID);
         }
     }
@@ -68,8 +68,13 @@ public class BluetoothConnector implements Initializable {
         OutputStream os =  BluetoothClient.outputStream;
         if(os != null){
             byte[] bytes = this.textSend.getText().getBytes(Charset.forName("utf-8"));
-            os.write(bytes);
-            os.flush();
+            try{
+                os.flush();
+                os.write(bytes);
+
+            }catch (Exception e){
+                System.out.println("连接已关闭，请重新连接");
+            }
         }
     }
 

@@ -98,7 +98,7 @@ public class RemoteDeviceDiscovery {
             }
         }
 
-        return  serviceFound.size() == 0 ? "" :serviceFound.elementAt(0);
+        return  serviceFound.size() == 0 ? null :serviceFound.elementAt(0);
 
     }
 }
