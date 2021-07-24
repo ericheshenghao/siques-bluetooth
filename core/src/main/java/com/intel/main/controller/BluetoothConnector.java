@@ -86,7 +86,7 @@ public class BluetoothConnector implements Initializable {
             while (true){
                 if(deviceName.getText() != ""){
                     List<String> msgList = ReceiveMessage.getInstance().getMsgList(deviceName.getText());
-
+                    receiveMsg.clear();
                     List<TextArea> collect = msgList.stream().map(s -> {
                         TextArea field = new TextArea(s);
 
@@ -233,22 +233,24 @@ public class BluetoothConnector implements Initializable {
 
     private void initSendList() {
         // 将发送队列重新读出，放入右列表
-        sendMsg.clear();
-        // 清空发送列表
-        List<String> msgList = SendMessage.getInstance().getMsgList(deviceName.getText());
+        Later.run(()->{
+            sendMsg.clear();
+            // 清空发送列表
+            List<String> msgList = SendMessage.getInstance().getMsgList(deviceName.getText());
 
-        List<TextArea> collect = msgList.stream().map(s -> {
-            TextArea field = new TextArea(s);
+            List<TextArea> collect = msgList.stream().map(s -> {
+                TextArea field = new TextArea(s);
 
-            field.setEditable(false);
-            field.setWrapText(true);
-            field.setMinHeight(100);
-            field.setMaxWidth(380);
-            return field;
-        }).collect(Collectors.toList());
+                field.setEditable(false);
+                field.setWrapText(true);
+                field.setMinHeight(100);
+                field.setMaxWidth(380);
+                return field;
+            }).collect(Collectors.toList());
 
-        sendMsg.addAll(collect);
-        sendMsgList.setItems(sendMsg);
+            sendMsg.addAll(collect);
+            sendMsgList.setItems(sendMsg);
+        });
     }
 
     private void startServer() {
