@@ -84,9 +84,9 @@ public class BluetoothConnector implements Initializable {
         getToothList();
 
             new Thread(()->{
+                int before = 0;
+                int after;
                 while (true){
-                    int before = 0;
-                    int after = 0;
                     if(deviceName.getText() != ""){
                         List<String> msgList = ReceiveMessage.getInstance().getMsgList(deviceName.getText());
                         after = msgList.size();
