@@ -116,6 +116,9 @@ public class BluetoothConnector implements Initializable {
 
 
     public void doSend(ActionEvent actionEvent)  {
+        if(textSend.getText().equals("")) {
+            return;
+        }
         OutputStream os = ConnectionPool.getInstance().getOS(deviceName.getText());
         if(os != null){
             byte[] bytes = this.textSend.getText().getBytes(Charset.forName("utf-8"));
