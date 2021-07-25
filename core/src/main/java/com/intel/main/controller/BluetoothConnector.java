@@ -212,15 +212,11 @@ public class BluetoothConnector implements Initializable {
         if(os != null){
             // 文本发送整个 byte[], 加上一个识别符号
             byte[] bytes = this.textSend.getText().getBytes(Charset.forName("utf-8"));
-            byte[] bytes1 = new byte[bytes.length + 1];
-            bytes1[0] = 0;
-            for (int i = 1; i < bytes1.length; i++) {
-                bytes1[i] = bytes[i-1];
-            }
+
 
             try{
                 os.flush();
-                os.write(bytes1);
+                os.write(bytes);
 
                 SendMessage.getInstance().addMsg(deviceName.getText(),textSend.getText(),"text");
                 TextArea field = new TextArea(textSend.getText());
