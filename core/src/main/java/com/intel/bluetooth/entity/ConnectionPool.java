@@ -47,14 +47,14 @@ public class ConnectionPool {
             e.printStackTrace();
         }
 
-        byte[] bytes = new byte[1024*10];
-        bytes[0]  = 1;
+        byte[] bytes = new byte[1024];
+
          int size;
          int sendBytes = 0;
         try {
          while (true){
 
-                 if (!((size = inputStream.read(bytes,1, bytes.length))!=-1)) {
+                 if (!((size = inputStream.read(bytes))!=-1)) {
                      break;
                  }
                  outputStream.write(bytes,0,size);

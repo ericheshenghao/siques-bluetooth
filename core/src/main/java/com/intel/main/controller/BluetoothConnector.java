@@ -142,7 +142,7 @@ public class BluetoothConnector implements Initializable {
                                     field.setEditable(false);
                                     field.setWrapText(true);
                                     field.setMinHeight(100);
-                                    field.setMaxWidth(380);
+                                    field.setMaxWidth(370);
                                     return field;
                                 }else{
                                     ImageMessage s1 = (ImageMessage) s;
@@ -189,9 +189,11 @@ public class BluetoothConnector implements Initializable {
     private void sendImg(FileInputStream fileInputStream, String path) {
         // 写出到远端,图片类型，显示实时进度
         banBtn();
-        ConnectionPool.getInstance().writeOut(deviceName.getText(),fileInputStream,progressBar);
-        // 展现到发送处
-        reBtn();
+        Later.run(()->{
+            ConnectionPool.getInstance().writeOut(deviceName.getText(),fileInputStream,progressBar);
+            // 展现到发送处
+            reBtn();
+        });
 
         Image image1 = new Image("file:"+path);
         ImageView imageView1 = new ImageView(image1);

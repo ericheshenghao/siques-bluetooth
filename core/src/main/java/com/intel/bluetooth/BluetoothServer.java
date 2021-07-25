@@ -70,10 +70,10 @@ public class BluetoothServer  implements Runnable {
 
 
     private void readAndHandle(InputStream is, BluetoothRFCommServerConnection streamConnection){
-        // 如何判断发送的是图片还是文本
+        // TODO 如何判断发送的是图片还是文本
 
         byte[] bytes = new byte[1024];
-        int size = 0;
+        int size;
         ByteArrayOutputStream os = new ByteArrayOutputStream();
 
 
@@ -90,8 +90,6 @@ public class BluetoothServer  implements Runnable {
                 if (((size = is.read(bytes)) == -1)) {
                     break;
                 }
-
-
                     os.write(bytes,0,size);
                     // 将接收到的信息，与发送端的名字绑定
                     ReceiveMessage.getInstance().addMsg(friendlyName,os.toString(),"text");
