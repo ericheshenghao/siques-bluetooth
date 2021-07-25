@@ -22,7 +22,6 @@ public class BluetoothServer  implements Runnable {
 
     private static InputStream inputStream;
 
-    private static HashMap<Thread, String> connectedClient = new HashMap<Thread, String>();
 
     public void startServer(String secretUUID) {
         String url = "btspp://localhost:" +  secretUUID;
@@ -73,7 +72,7 @@ public class BluetoothServer  implements Runnable {
         // 如何判断发送的是图片还是文本
 
         byte[] bytes = new byte[1024];
-        int size = 0;
+        int size;
         ByteArrayOutputStream os = new ByteArrayOutputStream();
 
 
@@ -90,9 +89,7 @@ public class BluetoothServer  implements Runnable {
                 if (((size = is.read(bytes)) == -1)) {
                     break;
                 }
-
-
-                    os.write(bytes,0,size);
+                    os.write(bytes,0, size);
                     // 将接收到的信息，与发送端的名字绑定
                     ReceiveMessage.getInstance().addMsg(friendlyName,os.toString(),"text");
                     System.out.println(" 当前输出："+os.toString());
