@@ -68,11 +68,11 @@ public class BluetoothServer  implements Runnable {
         }
     }
 
-    SimpleDateFormat sdf = new SimpleDateFormat("YYYY-MM-DD-HH-mm-ss");
+
     private void readAndHandle(InputStream is, BluetoothRFCommServerConnection streamConnection){
         // 如何判断发送的是图片还是文本
 
-        byte[] bytes = new byte[1024*10];
+        byte[] bytes = new byte[1024];
         int size = 0;
         ByteArrayOutputStream os = new ByteArrayOutputStream();
 
@@ -90,23 +90,22 @@ public class BluetoothServer  implements Runnable {
                 if (((size = is.read(bytes)) == -1)) {
                     break;
                 }
-                byte[] b = new byte[1];
-                is.read(b);
-                if(b[0] == 0){ //文本
-                    os.write(bytes,1,size);
+
+
+                    os.write(bytes,0,size);
                     // 将接收到的信息，与发送端的名字绑定
                     ReceiveMessage.getInstance().addMsg(friendlyName,os.toString(),"text");
                     System.out.println(" 当前输出："+os.toString());
                     os.reset();
-                }else{
-                    // 暂时一次性读进去
-                    String url = "core/src/main/resources/"+sdf.format(new Date())+".png";
-                    FileOutputStream outputStream = new FileOutputStream(url);
 
-                    outputStream.write(bytes,1,size);
-                    outputStream.close();
-                    ReceiveMessage.getInstance().addMsg(friendlyName,url,"file");
-                }
+                    // 暂时一次性读进去
+//                    String url = "core/src/main/resources/"+sdf.format(new Date())+".png";
+//                    FileOutputStream outputStream = new FileOutputStream(url);
+//
+//                    outputStream.write(bytes,1,size);
+//                    outputStream.close();
+//                    ReceiveMessage.getInstance().addMsg(friendlyName,url,"file");
+
             } catch (IOException e) {
                 e.printStackTrace();
             }

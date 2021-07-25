@@ -21,7 +21,7 @@ public class ImageMessage extends MessageItem {
     }
 
     @Override
-    public Class getType() {
-        return ImageView.class;
+    public String getType() {
+        return "image";
     }
 }

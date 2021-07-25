@@ -135,7 +135,7 @@ public class BluetoothConnector implements Initializable {
                                 receiveMsg.clear();
                             });
                             List<Object> collect = msgList.stream().map(s -> {
-                                if(s.getType().equals(TextArea.class)){
+                                if(s.getType().equals("text")){
 
                                     TextArea field = new TextArea(((TextMessage) s).getText());
 
@@ -338,8 +338,8 @@ public class BluetoothConnector implements Initializable {
             List<MessageItem> msgList = SendMessage.getInstance().getMsgList(deviceName.getText());
 
             List<Object> collect = msgList.stream().map(s -> {
-                Class type = s.getType();
-                if(type.equals(TextArea.class))
+                String type = s.getType();
+                if(type.equals("text"))
                 {
 
                     TextArea field = new TextArea(((TextMessage) s).getText());
