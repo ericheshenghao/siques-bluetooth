@@ -3,6 +3,8 @@ package com.intel.bluetooth;
 import com.intel.bluetooth.entity.ReceiveMessage;
 
 import java.io.*;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
 import javax.bluetooth.DiscoveryAgent;
 import javax.bluetooth.LocalDevice;
@@ -66,11 +68,15 @@ public class BluetoothServer  implements Runnable {
         }
     }
 
-
+    SimpleDateFormat sdf = new SimpleDateFormat("YYYY-MM-DD-HH-mm-ss");
     private void readAndHandle(InputStream is, BluetoothRFCommServerConnection streamConnection){
-        byte[] bytes = new byte[1024];
+        // 如何判断发送的是图片还是文本
+
+        byte[] bytes = new byte[1024*10];
         int size = 0;
         ByteArrayOutputStream os = new ByteArrayOutputStream();
+
+
         RemoteDevice remoteDevice = streamConnection.getRemoteDevice();
         String friendlyName = null;
         try {
@@ -80,19 +86,32 @@ public class BluetoothServer  implements Runnable {
         }
         while(true){
             try {
+                // 读取完毕阻塞
                 if (((size = is.read(bytes)) == -1)) {
                     break;
                 }
-                os.write(bytes,0,size);
+                byte[] b = new byte[1];
+                is.read(b);
+                if(b[0] == 0){ //文本
+                    os.write(bytes,1,size);
+                    // 将接收到的信息，与发送端的名字绑定
+                    ReceiveMessage.getInstance().addMsg(friendlyName,os.toString(),"text");
+                    System.out.println(" 当前输出："+os.toString());
+                    os.reset();
+                }else{
+                    // 暂时一次性读进去
+                    String url = "core/src/main/resources/"+sdf.format(new Date())+".png";
+                    FileOutputStream outputStream = new FileOutputStream(url);
+
+                    outputStream.write(bytes,1,size);
+                    outputStream.close();
+                    ReceiveMessage.getInstance().addMsg(friendlyName,url,"file");
+                }
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            // 将接收到的信息，与发送端的名字绑定
-            ReceiveMessage.getInstance().addMsg(friendlyName,os.toString());
-            System.out.println(" 当前输出："+os.toString());
-            os.reset();
+
         }
-//        textReceive.setText(os.toString());
     }
 
 }

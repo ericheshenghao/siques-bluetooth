@@ -1,5 +1,9 @@
 package com.intel.bluetooth.entity;
 
+import javafx.scene.control.ProgressBar;
+
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.HashMap;
 
@@ -32,6 +36,38 @@ public class ConnectionPool {
 
     public void deleteOS(String deviceName){
           pool.remove(deviceName);
+    }
+
+    public void writeOut(String deviceName, InputStream inputStream, ProgressBar progressBar){
+        OutputStream outputStream = pool.get(deviceName);
+        int available = 0;
+        try {
+            available = inputStream.available();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        byte[] bytes = new byte[1024*10];
+        bytes[0]  = 1;
+         int size;
+         int sendBytes = 0;
+        try {
+         while (true){
+
+                 if (!((size = inputStream.read(bytes,1, bytes.length))!=-1)) {
+                     break;
+                 }
+                 outputStream.write(bytes,0,size);
+                 sendBytes += size;
+                 Double x = Double.valueOf(sendBytes / available);
+                 progressBar.setProgress(x);
+         }
+           progressBar.setProgress(1);
+            inputStream.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
     }
 
 }

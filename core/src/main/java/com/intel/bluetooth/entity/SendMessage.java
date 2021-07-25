@@ -1,5 +1,7 @@
 package com.intel.bluetooth.entity;
 
+
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -14,25 +16,33 @@ import java.util.List;
 public class SendMessage {
 
     //   此端 -- 》 接收者
-    HashMap<String, List<String>> container = new HashMap<>();
+    HashMap<String, List<MessageItem>> container = new HashMap<>();
 
 
-    static ReceiveMessage deviceMessage;
+    static SendMessage deviceMessage;
 
-    public static ReceiveMessage getInstance(){
+    public static SendMessage getInstance(){
         if(deviceMessage == null){
-            deviceMessage = new ReceiveMessage();
+            deviceMessage = new SendMessage();
         }
         return deviceMessage;
     }
 
-    public void addMsg(String deviceName,String msg){
-        List<String> list = container.getOrDefault(deviceName, new ArrayList<>());
-        list.add(msg);
+    public void addMsg(String deviceName,String msg,String type){
+        List<MessageItem> list = container.getOrDefault(deviceName, new ArrayList<>());
+
+         if(type.equals("file")){
+             ImageMessage imageMessage = new ImageMessage("dsfsd");
+             list.add(imageMessage);
+         }else{
+             TextMessage textMessage = new TextMessage(msg);
+             list.add(textMessage);
+         }
+         //
         container.put(deviceName,list);
     }
 
-    public List<String> getMsgList(String deviceName){
+    public List<MessageItem> getMsgList(String deviceName){
         return container.getOrDefault(deviceName, new ArrayList<>());
     }
 }

@@ -14,7 +14,7 @@ import java.util.List;
 public class ReceiveMessage {
 
     // 发送者
-    HashMap<String, List<String>> container = new HashMap<>();
+    HashMap<String, List<MessageItem>> container = new HashMap<>();
 
 
     static ReceiveMessage deviceMessage;
@@ -26,14 +26,21 @@ public class ReceiveMessage {
         return deviceMessage;
     }
 
-    public void addMsg(String deviceName,String msg){
-        List<String> list = container.getOrDefault(deviceName, new ArrayList<>());
-        list.add(msg);
+    public void addMsg(String deviceName,String msg,String type){
+        List<MessageItem> list = container.getOrDefault(deviceName, new ArrayList<>());
+
+        if(type.equals("file")){
+            ImageMessage imageMessage = new ImageMessage(msg);
+            list.add(imageMessage);
+        }else{
+            TextMessage textMessage = new TextMessage(msg);
+            list.add(textMessage);
+        }
         container.put(deviceName,list);
 
     }
 
-    public List<String> getMsgList(String deviceName){
+    public List<MessageItem> getMsgList(String deviceName){
         return container.getOrDefault(deviceName, new ArrayList<>());
     }
 

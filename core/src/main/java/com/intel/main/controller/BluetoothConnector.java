@@ -1,25 +1,32 @@
 package com.intel.main.controller;
 
 
-import com.intel.bluetooth.*;
+import com.intel.bluetooth.BluetoothClient;
+import com.intel.bluetooth.BluetoothServer;
+import com.intel.bluetooth.RemoteDeviceDiscovery;
 import com.intel.bluetooth.constant.ConnectStatus;
-import com.intel.bluetooth.entity.ConnectionPool;
-import com.intel.bluetooth.entity.CustomRemoteDevice;
-import com.intel.bluetooth.entity.ReceiveMessage;
-import com.intel.bluetooth.entity.SendMessage;
+import com.intel.bluetooth.entity.*;
 import com.intel.bluetooth.exception.ServiceNotFoundException;
 import com.intel.bluetooth.util.Faker;
 import com.intel.bluetooth.util.Later;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
+import javafx.event.EventType;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
-import javafx.scene.input.MouseEvent;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.scene.input.*;
 import javafx.scene.shape.Circle;
 import javafx.scene.text.Text;
 
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.OutputStream;
 import java.net.URL;
 import java.nio.charset.Charset;
@@ -42,10 +49,10 @@ public class BluetoothConnector implements Initializable {
     private ListView<CustomRemoteDevice> toothList;
 
     @FXML
-    private ListView<TextArea> sendMsgList;
+    private ListView<Object> sendMsgList;
 
     @FXML
-    private ListView<TextArea> receiveMsgList;
+    private ListView<Object> receiveMsgList;
 
     @FXML
     private ProgressIndicator progressIndicator;
@@ -71,37 +78,81 @@ public class BluetoothConnector implements Initializable {
     @FXML
     private Text connectText;
 
+
+
     ObservableList<CustomRemoteDevice> data  =
             FXCollections.observableArrayList();
 
-    ObservableList<TextArea> sendMsg  =
+    ObservableList<Object> sendMsg  =
             FXCollections.observableArrayList();
 
-    ObservableList<TextArea> receiveMsg  =
+    ObservableList<Object> receiveMsg  =
             FXCollections.observableArrayList();
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         getToothList();
+        textSend.setOnDragOver(new EventHandler<DragEvent>() { //node添加拖入文件事件
+            @Override
+            public void handle(DragEvent event) {
+
+                Dragboard dragboard = event.getDragboard();
+                if (dragboard.hasFiles()) {
+                    event.acceptTransferModes(TransferMode.ANY);   //这一句必须有，否则setOnDragDropped不会触发
+                }
+            }
+        });
+
+        textSend.setOnDragDropped(new EventHandler<DragEvent>() { //拖入后松开鼠标触发的事件
+            @Override
+            public void handle(DragEvent event) {
+                // get drag enter file
+                Dragboard dragboard = event.getDragboard();
+                if (event.isAccepted()) {
+                    File file = dragboard.getFiles().get(0); //获取拖入的文件
+                    FileInputStream fileInputStream = null;
+                    try {
+                         fileInputStream = new FileInputStream(file);
+                    } catch (FileNotFoundException e) {
+                        e.printStackTrace();
+                    }
+
+                    // 发送并建立关连
+                    sendImg(fileInputStream,file.getAbsolutePath());
+                }
+            }
+        });
 
             new Thread(()->{
                 int before = 0;
                 int after;
                 while (true){
                     if(deviceName.getText() != ""){
-                        List<String> msgList = ReceiveMessage.getInstance().getMsgList(deviceName.getText());
+                        List<MessageItem> msgList = ReceiveMessage.getInstance().getMsgList(deviceName.getText());
+
                         after = msgList.size();
                         if(before != after){
                             Later.run(()->{
                                 receiveMsg.clear();
                             });
-                            List<TextArea> collect = msgList.stream().map(s -> {
-                                TextArea field = new TextArea(s);
+                            List<Object> collect = msgList.stream().map(s -> {
+                                if(s.getType().equals(TextArea.class)){
 
-                                field.setEditable(false);
-                                field.setWrapText(true);
-                                field.setMinHeight(100);
-                                field.setMaxWidth(380);
-                                return field;
+                                    TextArea field = new TextArea(((TextMessage) s).getText());
+
+                                    field.setEditable(false);
+                                    field.setWrapText(true);
+                                    field.setMinHeight(100);
+                                    field.setMaxWidth(380);
+                                    return field;
+                                }else{
+                                    ImageMessage s1 = (ImageMessage) s;
+                                    String url = s1.getUrl();
+                                    Image image1 = new Image(url);
+                                    ImageView imageView1 = new ImageView(image1);
+                                    return imageView1;
+                                }
+
+
                             }).collect(Collectors.toList());
 
                             Later.run(()->{
@@ -122,19 +173,56 @@ public class BluetoothConnector implements Initializable {
         startServer();
     }
 
+    private void banBtn(){
+        textSend.setDisable(true);
+        sendBtn.setDisable(true);
+        progressBar.setVisible(true);
+    }
 
+    private void reBtn(){
+        textSend.setDisable(false);
+        sendBtn.setDisable(false);
+        progressBar.setVisible(false);
+    }
+
+    // 发送图片
+    private void sendImg(FileInputStream fileInputStream, String path) {
+        // 写出到远端,图片类型，显示实时进度
+        banBtn();
+        ConnectionPool.getInstance().writeOut(deviceName.getText(),fileInputStream,progressBar);
+        // 展现到发送处
+        reBtn();
+
+        Image image1 = new Image("file:"+path);
+        ImageView imageView1 = new ImageView(image1);
+        imageView1.setFitWidth(380);
+        imageView1.setPreserveRatio(true);
+        // TODO 图片的复制事件
+
+        sendMsg.add(imageView1);
+        sendMsgList.setItems(sendMsg);
+    }
+
+    // 发送文本
     public void doSend(ActionEvent actionEvent)  {
         if(textSend.getText().equals("")) {
             return;
         }
         OutputStream os = ConnectionPool.getInstance().getOS(deviceName.getText());
         if(os != null){
+            // 文本发送整个 byte[], 加上一个识别符号
             byte[] bytes = this.textSend.getText().getBytes(Charset.forName("utf-8"));
+            byte[] bytes1 = new byte[bytes.length + 1];
+            bytes1[0] = 0;
+            for (int i = 1; i < bytes1.length; i++) {
+                bytes1[i] = bytes[i-1];
+            }
+
             try{
                 os.flush();
-                os.write(bytes);
+                os.write(bytes1);
 
-                SendMessage.getInstance().addMsg(deviceName.getText(),textSend.getText());
+                SendMessage.getInstance().addMsg(deviceName.getText(),textSend.getText(),"text");
                 TextArea field = new TextArea(textSend.getText());
 
                 field.setEditable(false);
@@ -251,16 +339,29 @@ public class BluetoothConnector implements Initializable {
         Later.run(()->{
             sendMsg.clear();
             // 清空发送列表
-            List<String> msgList = SendMessage.getInstance().getMsgList(deviceName.getText());
+            List<MessageItem> msgList = SendMessage.getInstance().getMsgList(deviceName.getText());
 
-            List<TextArea> collect = msgList.stream().map(s -> {
-                TextArea field = new TextArea(s);
+            List<Object> collect = msgList.stream().map(s -> {
+                Class type = s.getType();
+                if(type.equals(TextArea.class))
+                {
 
-                field.setEditable(false);
-                field.setWrapText(true);
-                field.setMinHeight(100);
-                field.setMaxWidth(380);
-                return field;
+                    TextArea field = new TextArea(((TextMessage) s).getText());
+
+                    field.setEditable(false);
+                    field.setWrapText(true);
+                    field.setMinHeight(100);
+                    field.setMaxWidth(380);
+                    return field;
+                }else{
+
+                    ImageMessage s1 = (ImageMessage) s;
+                    String url = "D:\\web\\siques-app\\siques-bluetooth\\core\\src\\main\\resources\\2021-07-23-12-52-43.png";
+                    Image image1 = new Image(url);
+                    ImageView imageView1 = new ImageView(image1);
+                    return imageView1;
+                }
+
             }).collect(Collectors.toList());
 
             sendMsg.addAll(collect);
