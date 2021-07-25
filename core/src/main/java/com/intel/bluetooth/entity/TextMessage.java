@@ -24,7 +24,7 @@ public class TextMessage extends MessageItem {
     }
 
     @Override
-    public Class  getType() {
-        return TextArea.class;
+    public String  getType() {
+        return "text";
     }
 }

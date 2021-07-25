@@ -21,7 +21,7 @@ public abstract class MessageItem    {
     }
 
 
-    public abstract Class<? extends MessageItem> getType();
+    public abstract String getType();
 
 
 }
