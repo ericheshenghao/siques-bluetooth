@@ -12,7 +12,7 @@
       <TextArea fx:id="textSend" disable="true" layoutX="214.0" layoutY="544.0" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="186.0" prefWidth="823.0" style="-fx-background-color: white;" wrapText="true" />
             <ListView fx:id="sendMsgList" layoutX="626.0" layoutY="51.0" maxWidth="-Infinity" pickOnBounds="false" prefHeight="494.0" prefWidth="413.0" style="-fx-border-color: #F5F5F5; -fx-background-color: #F5F5F5;" />
       <Label fx:id="deviceName" layoutX="214.0" prefHeight="51.0" prefWidth="823.0" style="-fx-background-color: white;" />
-      <Button fx:id="sendBtn" disable="true" layoutX="904.0" layoutY="689.0" mnemonicParsing="false" onAction="#doSend" prefHeight="23.0" prefWidth="105.0" text="发送" />
+      <Button fx:id="sendBtn" disable="true" layoutX="904.0" layoutY="689.0" mnemonicParsing="false" onAction="#sendText" prefHeight="23.0" prefWidth="105.0" text="发送" />
       <ListView fx:id="toothList" editable="true" prefHeight="730.0" prefWidth="214.0" style="-fx-background-color: #E0E0E0;">
          <opaqueInsets>
             <Insets />

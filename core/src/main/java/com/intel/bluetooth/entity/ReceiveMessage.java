@@ -1,5 +1,6 @@
 package com.intel.bluetooth.entity;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -29,12 +30,19 @@ public class ReceiveMessage {
     public void addMsg(String deviceName,String msg,String type){
         List<MessageItem> list = container.getOrDefault(deviceName, new ArrayList<>());
 
-        if(type.equals("file")){
+        if("image".equals(type)){
             ImageMessage imageMessage = new ImageMessage(msg);
             list.add(imageMessage);
-        }else{
+        }
+
+        if("text".equals(type)) {
             TextMessage textMessage = new TextMessage(msg);
             list.add(textMessage);
+        }
+
+        if("file".equals(type)) {
+            FileMessage fileMessage = new FileMessage(msg);
+            list.add(fileMessage);
         }
         container.put(deviceName,list);
 
