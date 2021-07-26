@@ -187,10 +187,12 @@ public class BluetoothConnector implements Initializable {
 
     // 发送图片
     private void sendImg(FileInputStream fileInputStream, String path) {
+        String suffix = path.substring(path.lastIndexOf(".") + 1);
+
         // 写出到远端,图片类型，显示实时进度
         banBtn();
         Later.run(()->{
-            ConnectionPool.getInstance().writeOut(deviceName.getText(),fileInputStream,progressBar);
+            ConnectionPool.getInstance().writeOut(deviceName.getText(),fileInputStream,progressBar,suffix);
             // 展现到发送处
             reBtn();
         });

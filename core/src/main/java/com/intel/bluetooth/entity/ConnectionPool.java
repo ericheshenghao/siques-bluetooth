@@ -2,9 +2,7 @@ package com.intel.bluetooth.entity;
 
 import javafx.scene.control.ProgressBar;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.util.HashMap;
 
 /**
@@ -38,35 +36,46 @@ public class ConnectionPool {
           pool.remove(deviceName);
     }
 
-    public void writeOut(String deviceName, InputStream inputStream, ProgressBar progressBar){
-        OutputStream outputStream = pool.get(deviceName);
-        int available = 0;
-        try {
-            available = inputStream.available();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+    public void writeOut(String deviceName, FileInputStream is, ProgressBar progressBar, String suffix){
+        OutputStream os = pool.get(deviceName);
 
-        byte[] bytes = new byte[1024];
+        byte[] bytes = new byte[1024*1024];
+
+
 
          int size;
-         int sendBytes = 0;
+
+
         try {
+            // 传文件开始
+            // 后缀
+            byte[] b2 = suffix.getBytes();
+            byte[] b = new byte[b2.length + 2];
+            b[0] = '&';
+            b[1] = (byte) b.length;
+            for (int i = 2; i < b.length; i++) {
+                b[i] = b2[i-2];
+            }
+            os.write(b);
          while (true){
 
-                 if (!((size = inputStream.read(bytes))!=-1)) {
+                 if (!((size = is.read(bytes))!=-1)) {
                      break;
                  }
-                 outputStream.write(bytes,0,size);
-                 sendBytes += size;
-                 Double x = Double.valueOf(sendBytes / available);
-                 progressBar.setProgress(x);
+                 os.write(bytes,0,size);
+
          }
-           progressBar.setProgress(1);
-            inputStream.close();
+
+            is.close();
+
+            // 传图结束
+            os.write(new byte[]{'$'});
         } catch (IOException e) {
             e.printStackTrace();
+            return;
         }
+
+
 
     }
 
