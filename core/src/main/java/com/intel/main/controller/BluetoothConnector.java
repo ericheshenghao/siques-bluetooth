@@ -13,16 +13,15 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
-import javafx.event.EventType;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.*;
+import javafx.scene.layout.AnchorPane;
 import javafx.scene.shape.Circle;
 import javafx.scene.text.Text;
-
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -79,7 +78,6 @@ public class BluetoothConnector implements Initializable {
     private Text connectText;
 
 
-
     ObservableList<CustomRemoteDevice> data  =
             FXCollections.observableArrayList();
 
@@ -98,6 +96,15 @@ public class BluetoothConnector implements Initializable {
                 Dragboard dragboard = event.getDragboard();
                 if (dragboard.hasFiles()) {
                     event.acceptTransferModes(TransferMode.ANY);   //这一句必须有，否则setOnDragDropped不会触发
+                }
+            }
+        });
+
+        textSend.setOnKeyPressed(new EventHandler<KeyEvent>() {
+            @Override
+            public void handle(KeyEvent e) {
+                if(e.getCode()==KeyCode.ENTER) {
+                    sendText();
                 }
             }
         });
@@ -125,6 +132,10 @@ public class BluetoothConnector implements Initializable {
             new Thread(()->{
                 int before = 0;
                 int after;
+                receiveMsgList.getSelectionModel().selectedItemProperty().addListener((e) -> {
+                    //System.out.println(e);//
+                    //TODO 列表的点击事件
+                });
                 while (true){
                     if(deviceName.getText() != ""){
                         List<MessageItem> msgList = ReceiveMessage.getInstance().getMsgList(deviceName.getText());
@@ -144,20 +155,34 @@ public class BluetoothConnector implements Initializable {
                                     field.setMinHeight(100);
                                     field.setMaxWidth(370);
                                     return field;
-                                }else{
-                                    ImageMessage s1 = (ImageMessage) s;
-                                    String url = s1.getUrl();
-                                    Image image1 = new Image(url);
-                                    ImageView imageView1 = new ImageView(image1);
-                                    return imageView1;
                                 }
 
+                                if(s.getType().equals("image")){
+                                    ImageMessage s1 = (ImageMessage) s;
+                                    String url = "file:"+s1.getUrl();
+                                    Image image1 = new Image(url);
+                                    ImageView imageView1 = new ImageView(image1);
+                                    imageView1.setFitWidth(380);
+                                    imageView1.setPreserveRatio(true);
+                                    AnchorPane pane = new AnchorPane();
+                                    pane.getChildren().add(imageView1);
+
+                                    return imageView1;
+                                }else{
+                                    FileMessage s1 = (FileMessage) s;
+                                    Label label = new Label("文件:" + s1.getSuffix());
+                                    label.setPrefHeight(60);
+
+                                    return label;
+                                }
 
                             }).collect(Collectors.toList());
 
                             Later.run(()->{
                                 receiveMsg.addAll(collect);
                                 receiveMsgList.setItems(receiveMsg);
+                                // 点击处理
+
                             });
                         }
                         before = after;
@@ -168,6 +193,7 @@ public class BluetoothConnector implements Initializable {
                         e.printStackTrace();
                     }
                 }
+
             }).start();
 
         startServer();
@@ -208,7 +234,7 @@ public class BluetoothConnector implements Initializable {
     }
 
     // 发送文本
-    public void doSend(ActionEvent actionEvent)  {
+    public void sendText()  {
         if(textSend.getText().equals("")) {
             return;
         }

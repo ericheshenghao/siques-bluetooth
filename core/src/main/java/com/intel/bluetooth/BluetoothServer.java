@@ -1,6 +1,7 @@
 package com.intel.bluetooth;
 
 import com.intel.bluetooth.entity.ReceiveMessage;
+import com.intel.bluetooth.util.FileType;
 
 import java.io.*;
 import java.text.SimpleDateFormat;
@@ -51,7 +52,7 @@ public class BluetoothServer  implements Runnable {
                 System.out.println(" 客户端已连接");
                 inputStream = streamConnection.openInputStream();
 
-                // 开新线程处理流
+                // 开新线程处理流，每一个连接的客户端对应一个流
                 Thread thread = new Thread(() -> {
                     readAndHandle(inputStream,streamConnection);
                     System.out.println("客户端已关闭");
@@ -67,42 +68,72 @@ public class BluetoothServer  implements Runnable {
         }
     }
 
-
+    SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss");
     private void readAndHandle(InputStream is, BluetoothRFCommServerConnection streamConnection){
-        // TODO 如何判断发送的是图片还是文本
 
-        byte[] bytes = new byte[1024];
+        byte[] bytes = new byte[1024*1024];
         int size;
         ByteArrayOutputStream os = new ByteArrayOutputStream();
-
+        FileOutputStream fileOutputStream = null;
 
         RemoteDevice remoteDevice = streamConnection.getRemoteDevice();
         String friendlyName = null;
+        String url = null;
+        String suffix = null;
         try {
               friendlyName = remoteDevice.getFriendlyName(false);
         } catch (IOException e) {
             e.printStackTrace();
         }
+        // 当前读取类型
+        int type = 1;
         while(true){
             try {
                 // 读取完毕阻塞
                 if (((size = is.read(bytes)) == -1)) {
                     break;
                 }
-                os.write(bytes,0,size);
+                //  判断是否要读文件,并且获取文件后缀
+                if(bytes[0] == '&' && size > 1 && size == bytes[1]){
+                    byte[] bs = new byte[size-2];
+                    for (int i = 0; i < size - 2; i++) {
+                        bs[i] = bytes[i + 2];
+                    }
+                    suffix= new String(bs);
+                    url = "core/src/main/resources/"+sdf.format(new Date())+"."+suffix;
+                    fileOutputStream = new FileOutputStream(url);
+                    type = 0; // 后续改为读文件
+                    continue;
 
-                    // 将接收到的信息，与发送端的名字绑定
+                }
+                // 一个字节，读取结束
+                if(size == 1 && bytes[0] == '$'){
+                    // 读取结束
+                    type = 1;
+                    fileOutputStream.close();
+                    //判断是否为图片还是文件
+                    boolean image = FileType.isImage(suffix);
+                    if(image){
+                        ReceiveMessage.getInstance().addMsg(friendlyName, url,"image");
+                    }else{
+                        ReceiveMessage.getInstance().addMsg(friendlyName, url,"file");
+                    }
+                    continue;
+                }
+
+
+                if(type == 1){
+                    // 将接收到的信息，与发送端的名字绑定，每一条信息只属于他的发送端
+                    os.write(bytes,0,size);
+
                     ReceiveMessage.getInstance().addMsg(friendlyName,os.toString(),"text");
                     System.out.println(" 当前输出："+os.toString());
                     os.reset();
+                }
 
-                    // 暂时一次性读进去
-//                    String url = "core/src/main/resources/"+sdf.format(new Date())+".png";
-//                    FileOutputStream outputStream = new FileOutputStream(url);
-//
-//                    outputStream.write(bytes,1,size);
-//                    outputStream.close();
-//                    ReceiveMessage.getInstance().addMsg(friendlyName,url,"file");
+                if(type == 0){
+                    fileOutputStream.write(bytes,0,size);
+                }
 
             } catch (IOException e) {
                 e.printStackTrace();
