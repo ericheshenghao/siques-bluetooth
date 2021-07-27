@@ -6,6 +6,8 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 
+import java.io.File;
+
 /**
  * @author: 何胜豪
  * @Title: TODO
@@ -34,6 +36,15 @@ public class Main extends Application {
     }
 
     public static void main(String[] args) {
+        mkdir();
         launch(args);
+    }
+
+    private static void mkdir(){
+        String url = "./files";
+        File file = new File(url);
+        if(!file.exists()){
+            file.mkdir();
+        }
     }
 }

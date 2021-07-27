@@ -100,9 +100,10 @@ public class BluetoothServer  implements Runnable {
                         bs[i] = bytes[i + 2];
                     }
                     suffix = new String(bs);
-                    url = "../core/src/main/resources/"+sdf.format(new Date())+"."+suffix;
-                    fileOutputStream = new FileOutputStream(url);
                     type = 0; // 后续改为读文件
+                    url = "./image/"+sdf.format(new Date())+"."+suffix;
+                    File file = new File(url);
+                    fileOutputStream = new FileOutputStream(url);
                     continue;
                 }
                 // 一个字节，读取结束
