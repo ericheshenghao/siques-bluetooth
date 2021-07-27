@@ -206,6 +206,7 @@ public class BluetoothConnector implements Initializable {
             try {
                 ConnectionPool.getInstance().writeOut(name,bytes);
             } catch (IOException e) {
+                ConnectionPool.getInstance().deleteOs(name);
                 e.printStackTrace();
                 clintOffline();
             }
@@ -327,17 +328,12 @@ public class BluetoothConnector implements Initializable {
                   connectFailed();
                   e.printStackTrace();
               }finally {
+
                   fakeTd.interrupt();
               }
           }).start();
     }
 
-
-    public void closeConnection(ActionEvent actionEvent) {
-        CustomRemoteDevice device = toothList.getSelectionModel().getSelectedItem();
-        BluetoothClient.closeClient(device);
-        clintOffline();
-    }
 
     private void initSendList() {
         // 将发送队列重新读出，放入右列表

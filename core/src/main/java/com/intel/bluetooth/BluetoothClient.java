@@ -39,6 +39,7 @@ public class BluetoothClient {
                     .setOS(device.getDeviceName(),  outputStream);
 
         } catch (IOException e) {
+
             throw new ServiceNotFoundException(e);
         }
 
@@ -46,8 +47,5 @@ public class BluetoothClient {
      }
 
 
-    public static void closeClient(CustomRemoteDevice device) {
-
-    }
 }
 

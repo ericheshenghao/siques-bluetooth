@@ -34,7 +34,9 @@ public class ConnectionPool {
           return this;
     }
 
-
+    public void deleteOs(String deviceName){
+        pool.remove(deviceName);
+    }
 
     public void writeOut(String deviceName, byte[] bytes) throws IOException {
         OutputStream os = pool.get(deviceName);
@@ -57,7 +59,7 @@ public class ConnectionPool {
             }
             os.write(b);
          while (true){
-                 if (!((size = is.read(bytes))!=-1)) {
+                 if (((size = is.read(bytes)) == -1)) {
                      break;
                  }
                  os.write(bytes,0,size);
