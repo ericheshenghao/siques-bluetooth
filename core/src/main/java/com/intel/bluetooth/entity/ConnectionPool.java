@@ -1,7 +1,8 @@
 package com.intel.bluetooth.entity;
 
-import javafx.scene.control.ProgressBar;
 
+
+import javax.microedition.io.StreamConnection;
 import java.io.*;
 import java.util.HashMap;
 
@@ -28,25 +29,23 @@ public class ConnectionPool {
           return pool.get(deviceName);
       }
 
-    public void setOS(String deviceName,OutputStream os){
+    public ConnectionPool setOS(String deviceName,OutputStream os){
           pool.put(deviceName,os);
+          return this;
     }
 
-    public void deleteOS(String deviceName){
-          pool.remove(deviceName);
+
+
+    public void writeOut(String deviceName, byte[] bytes) throws IOException {
+        OutputStream os = pool.get(deviceName);
+        os.write(bytes);
     }
 
-    public void writeOut(String deviceName, FileInputStream is, ProgressBar progressBar, String suffix){
+    public void writeOut(String deviceName, FileInputStream is, String suffix) throws IOException {
         OutputStream os = pool.get(deviceName);
 
         byte[] bytes = new byte[1024*1024];
-
-
-
          int size;
-
-
-        try {
             // 传文件开始
             // 后缀
             byte[] b2 = suffix.getBytes();
@@ -58,25 +57,15 @@ public class ConnectionPool {
             }
             os.write(b);
          while (true){
-
                  if (!((size = is.read(bytes))!=-1)) {
                      break;
                  }
                  os.write(bytes,0,size);
-
          }
-
             is.close();
-
             // 传图结束
             os.write(new byte[]{'$'});
-        } catch (IOException e) {
-            e.printStackTrace();
-            return;
-        }
-
-
-
     }
+
 
 }

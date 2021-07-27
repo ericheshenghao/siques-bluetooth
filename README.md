@@ -5,4 +5,4 @@ Java SE使用BlueCove框架蓝牙连接的Demo，中文社区关于Java SE连接
 2. 作为服务器端被动连接
 3. 作为客户端主动连接
 ## 详情
-博客：[Java SE+bluecove  蓝牙连接](http://blog.csdn.net/Svizzera/article/details/77434917)
+ 

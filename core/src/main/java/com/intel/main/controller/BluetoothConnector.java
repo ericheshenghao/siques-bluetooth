@@ -4,10 +4,14 @@ package com.intel.main.controller;
 import com.intel.bluetooth.BluetoothClient;
 import com.intel.bluetooth.BluetoothServer;
 import com.intel.bluetooth.RemoteDeviceDiscovery;
+import com.intel.bluetooth.component.CustomLabelView;
+import com.intel.bluetooth.component.ReceiveTextArea;
+import com.intel.bluetooth.component.CustomImageView;
 import com.intel.bluetooth.constant.ConnectStatus;
 import com.intel.bluetooth.entity.*;
 import com.intel.bluetooth.exception.ServiceNotFoundException;
 import com.intel.bluetooth.util.Faker;
+import com.intel.bluetooth.util.FileType;
 import com.intel.bluetooth.util.Later;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -23,12 +27,10 @@ import javafx.scene.layout.AnchorPane;
 import javafx.scene.shape.Circle;
 import javafx.scene.text.Text;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.OutputStream;
+import java.io.*;
 import java.net.URL;
 import java.nio.charset.Charset;
+import java.util.Collection;
 import java.util.List;
 import java.util.ResourceBundle;
 import java.util.Vector;
@@ -77,7 +79,6 @@ public class BluetoothConnector implements Initializable {
     @FXML
     private Text connectText;
 
-
     ObservableList<CustomRemoteDevice> data  =
             FXCollections.observableArrayList();
 
@@ -88,11 +89,55 @@ public class BluetoothConnector implements Initializable {
             FXCollections.observableArrayList();
     @Override
     public void initialize(URL location, ResourceBundle resources) {
+        new Thread(()->{
+            int before = 0;
+            int after;
+            while (true){
+                if(deviceName.getText() != ""){
+                    List<MessageItem> msgList = ReceiveMessage.getInstance().getMsgList(deviceName.getText());
+
+                    after = msgList.size();
+                    if(before != after){
+                        Later.run(()->{
+                            receiveMsg.clear();
+                        });
+                        List<Object> collect = msgList.stream().map(s -> {
+                            if(s.getType().equals("text")){
+                                return new ReceiveTextArea(((TextMessage) s).getText());
+                            }
+                            if(s.getType().equals("image")){
+                                ImageMessage s1 = (ImageMessage) s;
+                                AnchorPane build = CustomImageView.build("file:" + s1.getUrl(), event -> {
+                                    System.out.println(s1.getUrl());
+                                });
+
+                                return build;
+                            }else{
+                                FileMessage s1 = (FileMessage) s;
+                                return  new CustomLabelView("文件:" + s1.getSuffix());
+                            }
+                        }).collect(Collectors.toList());
+
+                        Later.run(()->{
+                            receiveMsg.addAll(collect);
+                            receiveMsgList.setItems(receiveMsg);
+                            // 点击处理
+                        });
+                    }
+                    before = after;
+                }
+                try {
+                    Thread.sleep(2000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+
+        }).start();
         getToothList();
         textSend.setOnDragOver(new EventHandler<DragEvent>() { //node添加拖入文件事件
             @Override
             public void handle(DragEvent event) {
-
                 Dragboard dragboard = event.getDragboard();
                 if (dragboard.hasFiles()) {
                     event.acceptTransferModes(TransferMode.ANY);   //这一句必须有，否则setOnDragDropped不会触发
@@ -112,7 +157,6 @@ public class BluetoothConnector implements Initializable {
         textSend.setOnDragDropped(new EventHandler<DragEvent>() { //拖入后松开鼠标触发的事件
             @Override
             public void handle(DragEvent event) {
-                // get drag enter file
                 Dragboard dragboard = event.getDragboard();
                 if (event.isAccepted()) {
                     File file = dragboard.getFiles().get(0); //获取拖入的文件
@@ -124,155 +168,68 @@ public class BluetoothConnector implements Initializable {
                     }
 
                     // 发送并建立关连
-                    sendImg(fileInputStream,file.getAbsolutePath());
+                    sendFile(fileInputStream,file.getAbsolutePath());
                 }
             }
         });
-
-            new Thread(()->{
-                int before = 0;
-                int after;
-                receiveMsgList.getSelectionModel().selectedItemProperty().addListener((e) -> {
-                    //System.out.println(e);//
-                    //TODO 列表的点击事件
-                });
-                while (true){
-                    if(deviceName.getText() != ""){
-                        List<MessageItem> msgList = ReceiveMessage.getInstance().getMsgList(deviceName.getText());
-
-                        after = msgList.size();
-                        if(before != after){
-                            Later.run(()->{
-                                receiveMsg.clear();
-                            });
-                            List<Object> collect = msgList.stream().map(s -> {
-                                if(s.getType().equals("text")){
-
-                                    TextArea field = new TextArea(((TextMessage) s).getText());
-
-                                    field.setEditable(false);
-                                    field.setWrapText(true);
-                                    field.setMinHeight(100);
-                                    field.setMaxWidth(370);
-                                    return field;
-                                }
-
-                                if(s.getType().equals("image")){
-                                    ImageMessage s1 = (ImageMessage) s;
-                                    String url = "file:"+s1.getUrl();
-                                    Image image1 = new Image(url);
-                                    ImageView imageView1 = new ImageView(image1);
-                                    imageView1.setFitWidth(380);
-                                    imageView1.setPreserveRatio(true);
-                                    AnchorPane pane = new AnchorPane();
-                                    pane.getChildren().add(imageView1);
-
-                                    return imageView1;
-                                }else{
-                                    FileMessage s1 = (FileMessage) s;
-                                    Label label = new Label("文件:" + s1.getSuffix());
-                                    label.setPrefHeight(60);
-
-                                    return label;
-                                }
-
-                            }).collect(Collectors.toList());
-
-                            Later.run(()->{
-                                receiveMsg.addAll(collect);
-                                receiveMsgList.setItems(receiveMsg);
-                                // 点击处理
-
-                            });
-                        }
-                        before = after;
-                    }
-                    try {
-                        Thread.sleep(2000);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                }
-
-            }).start();
-
         startServer();
     }
 
-    private void banBtn(){
-        textSend.setDisable(true);
-        sendBtn.setDisable(true);
-        progressBar.setVisible(true);
-    }
-
-    private void reBtn(){
-        textSend.setDisable(false);
-        sendBtn.setDisable(false);
-        progressBar.setVisible(false);
-    }
-
     // 发送图片
-    private void sendImg(FileInputStream fileInputStream, String path) {
+    private void sendFile(FileInputStream fileInputStream, String path) {
         String suffix = path.substring(path.lastIndexOf(".") + 1);
 
-        // 写出到远端,图片类型，显示实时进度
-        banBtn();
         Later.run(()->{
-            ConnectionPool.getInstance().writeOut(deviceName.getText(),fileInputStream,progressBar,suffix);
+            try {
+                ConnectionPool.getInstance().writeOut(deviceName.getText(),fileInputStream,suffix);
+            } catch (IOException e) {
+                e.printStackTrace();
+                clintOffline();
+            }
             // 展现到发送处
-            reBtn();
         });
-
-        Image image1 = new Image("file:"+path);
-        ImageView imageView1 = new ImageView(image1);
-        imageView1.setFitWidth(380);
-        imageView1.setPreserveRatio(true);
-        // TODO 图片的复制事件
-
-        sendMsg.add(imageView1);
-        sendMsgList.setItems(sendMsg);
+        boolean image = FileType.isImage(suffix);
+        SendMessage.getInstance().addMsg(deviceName.getText(),path,image?"image":"file");
+        AnchorPane pane = CustomImageView.build("file:" + path);
+        refreshSendList(pane);
     }
 
     // 发送文本
     public void sendText()  {
-        if(textSend.getText().equals("")) {
+        String text = textSend.getText();
+        String name = deviceName.getText();
+        if(text.equals("")) {
             return;
         }
-        OutputStream os = ConnectionPool.getInstance().getOS(deviceName.getText());
-        if(os != null){
-            // 文本发送整个 byte[], 加上一个识别符号
-            byte[] bytes = this.textSend.getText().getBytes(Charset.forName("utf-8"));
-
-
-            try{
-                os.flush();
-                os.write(bytes);
-
-                SendMessage.getInstance().addMsg(deviceName.getText(),textSend.getText(),"text");
-                TextArea field = new TextArea(textSend.getText());
-
-                field.setEditable(false);
-                field.setWrapText(true);
-                field.setMinHeight(100);
-                field.setMaxWidth(380);
-
-                sendMsg.add(field);
-                sendMsgList.setItems(sendMsg);
-                textSend.setText("");
-            }catch (Exception e){
-                sendBtn.setDisable(true);
-                connectOnline.setVisible(false);
-                connectText.setText(ConnectStatus.OFF_LINE.getSt());
-                //删除流
-                ConnectionPool.getInstance().deleteOS(deviceName.getText());
-                System.out.println("连接已关闭，请重新连接");
+        Later.run(()->{
+            byte[] bytes = text.getBytes(Charset.forName("utf-8"));
+            try {
+                ConnectionPool.getInstance().writeOut(name,bytes);
+            } catch (IOException e) {
+                e.printStackTrace();
+                clintOffline();
             }
-        }
+        });
+
+        SendMessage.getInstance().addMsg(name,text,"text");
+        ReceiveTextArea area = new ReceiveTextArea(text);
+        refreshSendList(area);
+        textSend.setText("");
     }
 
     public void doRefresh(ActionEvent actionEvent) {
         getToothList();
     }
+
+    private void refreshSendList(Object o){
+        sendMsg.add(o);
+        sendMsgList.setItems(sendMsg);
+    }
+    private void refreshSendList(Collection o){
+        sendMsg.addAll(o);
+        sendMsgList.setItems(sendMsg);
+    }
+
 
     private void getToothList() {
         if(progressIndicator.isVisible()) {
@@ -313,51 +270,73 @@ public class BluetoothConnector implements Initializable {
 
     }
 
+    private void clintOffline(){
+        sendBtn.setDisable(true);
+        connectOnline.setVisible(false);
+        connectText.setText(ConnectStatus.OFF_LINE.getSt());
+        System.out.println("连接已关闭，请重新连接");
+    }
+
+    private void clintOnline(String name){
+        toothList.setDisable(false);
+        refreshBtn.setDisable(false);
+        sendBtn.setDisable(false);
+        connectOnline.setVisible(true);
+        textSend.setDisable(false);
+        deviceName.setText(name);
+        connectText.setText(ConnectStatus.ON_LINE.getSt());
+        initSendList();
+    }
+
+    private void clintConnecting(String name){
+        toothList.setDisable(true);
+        refreshBtn.setDisable(true);
+        connectOnline.setVisible(false);
+        sendBtn.setDisable(true);
+        connectText.setText(ConnectStatus.CONNECTING.getSt());
+        deviceName.setText(name);
+        progressBar.setVisible(true);
+    }
+
+    private void connectFailed( ){
+        connectText.setText(ConnectStatus.ERROR_LINE.getSt());
+        toothList.setDisable(false);
+        refreshBtn.setDisable(false);
+        initSendList();
+    }
 
     public void doConnect(MouseEvent actionEvent)  {
         CustomRemoteDevice device = toothList.getSelectionModel().getSelectedItem();
         if(device == null) {
             return;
         }
-        OutputStream os = ConnectionPool.getInstance().getOS(device.getDeviceName());
+        String name = device.getDeviceName();
+        OutputStream os = ConnectionPool.getInstance().getOS(name);
         if(os != null){
-            sendBtn.setDisable(false);
-            connectOnline.setVisible(true);
-            deviceName.setText(device.getDeviceName());
-            connectText.setText(ConnectStatus.ON_LINE.getSt());
-            initSendList();
+            clintOnline(name);
             return;
         }
-        toothList.setDisable(true);
-        refreshBtn.setDisable(true);
-        connectOnline.setVisible(false);
-        sendBtn.setDisable(true);
-        connectText.setText(ConnectStatus.CONNECTING.getSt());
-        deviceName.setText(device.getDeviceName());
-        progressBar.setVisible(true);
+        clintConnecting(name);
         Thread fakeTd = Faker.fakeProgress(progressBar);
           new Thread(()->{
-
               try {
                   BluetoothClient.startClient(device, secretUUID);
-                  connectText.setText(ConnectStatus.ON_LINE.getSt());
-                  connectOnline.setVisible(true);
-                  sendBtn.setDisable(false);
-                  textSend.setDisable(false);
-
-
+                  clintOnline(name);
               } catch (ServiceNotFoundException e) {
                   // 未找到服务
+                  connectFailed();
                   e.printStackTrace();
-                  connectText.setText(ConnectStatus.ERROR_LINE.getSt());
               }finally {
                   fakeTd.interrupt();
-                  toothList.setDisable(false);
-                  refreshBtn.setDisable(false);
-                  initSendList();
               }
-
           }).start();
+    }
+
+
+    public void closeConnection(ActionEvent actionEvent) {
+        CustomRemoteDevice device = toothList.getSelectionModel().getSelectedItem();
+        BluetoothClient.closeClient(device);
+        clintOffline();
     }
 
     private void initSendList() {
@@ -371,27 +350,22 @@ public class BluetoothConnector implements Initializable {
                 String type = s.getType();
                 if(type.equals("text"))
                 {
+                    ReceiveTextArea area = new ReceiveTextArea(((TextMessage) s).getText());
 
-                    TextArea field = new TextArea(((TextMessage) s).getText());
+                    return area;
+                }
 
-                    field.setEditable(false);
-                    field.setWrapText(true);
-                    field.setMinHeight(100);
-                    field.setMaxWidth(380);
-                    return field;
-                }else{
-
+                if(type.equals("image")){
                     ImageMessage s1 = (ImageMessage) s;
-                    String url = "D:\\web\\siques-app\\siques-bluetooth\\core\\src\\main\\resources\\2021-07-23-12-52-43.png";
-                    Image image1 = new Image(url);
-                    ImageView imageView1 = new ImageView(image1);
-                    return imageView1;
+                    return CustomImageView.build("file:" + s1.getUrl());
+                }else{
+                    FileMessage s1 = (FileMessage) s;
+                    return  new CustomLabelView("文件:" + s1.getSuffix());
                 }
 
             }).collect(Collectors.toList());
 
-            sendMsg.addAll(collect);
-            sendMsgList.setItems(sendMsg);
+            refreshSendList(collect);
         });
     }
 
@@ -402,7 +376,5 @@ public class BluetoothConnector implements Initializable {
         });
         thread.start();
     }
-
-
 
 }

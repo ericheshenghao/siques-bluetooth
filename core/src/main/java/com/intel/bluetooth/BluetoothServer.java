@@ -95,11 +95,11 @@ public class BluetoothServer  implements Runnable {
                 }
                 //  判断是否要读文件,并且获取文件后缀
                 if(bytes[0] == '&' && size > 1 && size == bytes[1]){
-                    byte[] bs = new byte[size-2];
+                    byte[] bs = new byte[size - 2];
                     for (int i = 0; i < size - 2; i++) {
                         bs[i] = bytes[i + 2];
                     }
-                    suffix= new String(bs);
+                    suffix = new String(bs);
                     url = "core/src/main/resources/"+sdf.format(new Date())+"."+suffix;
                     fileOutputStream = new FileOutputStream(url);
                     type = 0; // 后续改为读文件
@@ -120,7 +120,6 @@ public class BluetoothServer  implements Runnable {
                     }
                     continue;
                 }
-
 
                 if(type == 1){
                     // 将接收到的信息，与发送端的名字绑定，每一条信息只属于他的发送端

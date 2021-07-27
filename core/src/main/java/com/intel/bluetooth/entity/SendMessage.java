@@ -31,13 +31,19 @@ public class SendMessage {
     public void addMsg(String deviceName,String msg,String type){
         List<MessageItem> list = container.getOrDefault(deviceName, new ArrayList<>());
 
-         if(type.equals("file")){
-             ImageMessage imageMessage = new ImageMessage("dsfsd");
+         if(type.equals("image")){
+             ImageMessage imageMessage = new ImageMessage(msg);
              list.add(imageMessage);
-         }else{
+         }
+        if(type.equals("text")){
              TextMessage textMessage = new TextMessage(msg);
              list.add(textMessage);
          }
+
+        if(type.equals("file")){
+            FileMessage fileMessage = new FileMessage(msg);
+            list.add(fileMessage);
+        }
          //
         container.put(deviceName,list);
     }

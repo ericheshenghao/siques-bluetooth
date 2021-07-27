@@ -18,7 +18,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 
 public class BluetoothClient {
-    public   static BluetoothRFCommClientConnection streamConnection;
+    public   static StreamConnection  streamConnection;
 
     public static OutputStream outputStream;
 
@@ -30,20 +30,24 @@ public class BluetoothClient {
 
         // 服务连不上
         try {
-            streamConnection = (BluetoothRFCommClientConnection ) Connector.open(url);
+
+            streamConnection = (StreamConnection  ) Connector.open(url);
             outputStream = streamConnection.openOutputStream();
 
             // 建立远端与输出流的关系
-            ConnectionPool.getInstance().setOS(device.getDeviceName(),outputStream);
+            ConnectionPool.getInstance()
+                    .setOS(device.getDeviceName(),  outputStream);
+
         } catch (IOException e) {
             throw new ServiceNotFoundException(e);
         }
-
 
         return streamConnection;
      }
 
 
+    public static void closeClient(CustomRemoteDevice device) {
 
+    }
 }
 

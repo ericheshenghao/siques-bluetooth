@@ -67,7 +67,7 @@ public class RemoteDeviceDiscovery {
 
     public static Vector<CustomRemoteDevice> findDevices()   {
 
-        LocalDevice ld = null;
+        LocalDevice ld;
         try {
             ld = LocalDevice.getLocalDevice();
 
@@ -86,8 +86,6 @@ public class RemoteDeviceDiscovery {
         }
           return devicesDiscovered;
     }
-
-
 
     public static String searchService(RemoteDevice btDevice, String serviceUUID) throws ServiceNotFoundException{
         UUID[] searchUuidSet = new UUID[] { new UUID(serviceUUID, false) };
