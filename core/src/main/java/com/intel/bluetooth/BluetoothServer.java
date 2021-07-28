@@ -106,8 +106,8 @@ public class BluetoothServer  implements Runnable {
                     fileOutputStream = new FileOutputStream(url);
                     continue;
                 }
-                // 一个字节，读取结束 {'$','e','n','d','$'};
-                if(bytes[size - 1] == '$'){
+                // 一个字节，读取结束
+                if(type == 0 && bytes[size - 1] == '$'){
                     // 读取结束
                     type = 1;
                     fileOutputStream.close();

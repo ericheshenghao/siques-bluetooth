@@ -66,7 +66,7 @@ public class ConnectionPool {
          }
             is.close();
             // 传图结束
-            os.write(new byte[]{'$','e','n','d','$'});
+            os.write(new byte[]{'$'});
     }
 
 
