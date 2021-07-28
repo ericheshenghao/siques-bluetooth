@@ -104,6 +104,8 @@ public class BluetoothServer  implements Runnable {
                     type = 0; // 后续改为读文件
                     url = "./files/"+sdf.format(new Date())+"."+suffix;
                     fileOutputStream = new FileOutputStream(url);
+
+
                     continue;
                 }
                 // 一个字节，读取结束

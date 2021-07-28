@@ -58,6 +58,7 @@ public class ConnectionPool {
                 b[i] = b2[i-2];
             }
             os.write(b);
+            os.flush();
          while (true){
                  if (((size = is.read(bytes)) == -1)) {
                      break;
@@ -66,7 +67,9 @@ public class ConnectionPool {
          }
             is.close();
             // 传图结束
+            os.flush();
             os.write(new byte[]{'$'});
+            os.flush();
     }
 
 
