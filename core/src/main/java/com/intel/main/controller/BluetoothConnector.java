@@ -30,6 +30,7 @@ import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Region;
 import javafx.scene.shape.Circle;
 import javafx.scene.text.Text;
+import lombok.SneakyThrows;
 
 import java.awt.*;
 import java.io.*;
@@ -151,42 +152,33 @@ public class BluetoothConnector implements Initializable {
 
         }).start();
         getToothList();
-        textSend.setOnDragOver(new EventHandler<DragEvent>() { //node添加拖入文件事件
-            @Override
-            public void handle(DragEvent event) {
-                Dragboard dragboard = event.getDragboard();
-                if (dragboard.hasFiles()) {
-                    event.acceptTransferModes(TransferMode.ANY);   //这一句必须有，否则setOnDragDropped不会触发
-                }
+        //node添加拖入文件事件
+        textSend.setOnDragOver(event -> {
+            Dragboard dragboard = event.getDragboard();
+            if (dragboard.hasFiles()) {
+                event.acceptTransferModes(TransferMode.ANY);   //这一句必须有，否则setOnDragDropped不会触发
             }
         });
 
-        textSend.setOnKeyPressed(new EventHandler<KeyEvent>() {
-            @Override
-            public void handle(KeyEvent e) {
-                if(e.getCode()==KeyCode.ENTER) {
-                    sendText();
-                }
+        textSend.setOnKeyPressed(e -> {
+            if(e.getCode()==KeyCode.ENTER) {
+                sendText();
             }
         });
 
-        textSend.setOnDragDropped(new EventHandler<DragEvent>() { //拖入后松开鼠标触发的事件
-            @Override
-            public void handle(DragEvent event) {
+        //拖入后松开鼠标触发的事件
+        textSend.setOnDragDropped(event -> {
                 Dragboard dragboard = event.getDragboard();
                 if (event.isAccepted()) {
                     File file = dragboard.getFiles().get(0); //获取拖入的文件
-                    FileInputStream fileInputStream = null;
                     try {
-                         fileInputStream = new FileInputStream(file);
+                        FileInputStream fileInputStream = new FileInputStream(file);
+                        // 发送并建立关连
+                        sendFile(fileInputStream, file.getAbsolutePath());
                     } catch (FileNotFoundException e) {
                         e.printStackTrace();
                     }
-
-                    // 发送并建立关连
-                    sendFile(fileInputStream,file.getAbsolutePath());
                 }
-            }
         });
         startServer();
     }
@@ -260,7 +252,7 @@ public class BluetoothConnector implements Initializable {
             return;
         }
         progressIndicator.setVisible(true);
-        Thread fakeTd = Faker.fakeProgress(progressIndicator);
+          Faker.fakeProgress(progressIndicator);
         new Thread(() -> {
             Later.run(()->{
                 data.clear();
@@ -268,7 +260,7 @@ public class BluetoothConnector implements Initializable {
             });
             Vector<CustomRemoteDevice> devices = RemoteDeviceDiscovery.findDevices();
             Later.run(()->{
-                fakeTd.interrupt();
+                Faker.interrupt();
 
                 data.addAll(devices);
                 toothList.setItems(data);
@@ -293,6 +285,19 @@ public class BluetoothConnector implements Initializable {
         }).start();
 
     }
+
+    private void fileSending(){
+         Faker.fakeProgress(progressIndicator);
+         sendBtn.setDisable(true);
+         textSend.setDisable(true);
+    }
+
+    private void sendingFinish(){
+        Faker.interrupt();
+        sendBtn.setDisable(false);
+        textSend.setDisable(false);
+    }
+
 
     private void clintOffline(){
         sendBtn.setDisable(true);
@@ -341,7 +346,7 @@ public class BluetoothConnector implements Initializable {
             return;
         }
         clintConnecting(name);
-        Thread fakeTd = Faker.fakeProgress(progressBar);
+          Faker.fakeProgress(progressBar);
           new Thread(()->{
               try {
                   BluetoothClient.startClient(device, secretUUID);
@@ -351,8 +356,7 @@ public class BluetoothConnector implements Initializable {
                   connectFailed();
                   e.printStackTrace();
               }finally {
-
-                  fakeTd.interrupt();
+                  Faker.interrupt();
               }
           }).start();
     }

@@ -68,6 +68,7 @@ public class BluetoothServer  implements Runnable {
         }
     }
 
+    // TODO 编解码问题
     SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss");
     private void readAndHandle(InputStream is, BluetoothRFCommServerConnection streamConnection){
 
@@ -105,8 +106,8 @@ public class BluetoothServer  implements Runnable {
                     fileOutputStream = new FileOutputStream(url);
                     continue;
                 }
-                // 一个字节，读取结束
-                if(size == 1 && bytes[0] == '$'){
+                // 一个字节，读取结束 {'$','e','n','d','$'};
+                if(bytes[size - 1] == '$'){
                     // 读取结束
                     type = 1;
                     fileOutputStream.close();
@@ -124,7 +125,7 @@ public class BluetoothServer  implements Runnable {
                     // 将接收到的信息，与发送端的名字绑定，每一条信息只属于他的发送端
                     os.write(bytes,0,size);
 
-                    ReceiveMessage.getInstance().addMsg(friendlyName,os.toString(),"text");
+                    ReceiveMessage.getInstance().addMsg(friendlyName,os.toString("utf-8"),"text");
                     System.out.println(" 当前输出："+os.toString("utf-8"));
                     os.reset();
                 }

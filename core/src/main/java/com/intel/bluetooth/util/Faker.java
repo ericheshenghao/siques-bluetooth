@@ -11,10 +11,10 @@ import javafx.scene.control.ProgressIndicator;
  * @date : 2021/7/24 17:18
  */
 public class Faker {
-
-    public static Thread fakeProgress(ProgressIndicator indicator){
+    private static Thread progress;
+    public static void fakeProgress(ProgressIndicator indicator){
         indicator.setProgress(0);
-        Thread fakeProgress = new Thread(() -> {
+        progress = new Thread(() -> {
             for (int i = 0; i < 125; i++) {
                 indicator.setProgress(0.008d*i);
                 try {
@@ -26,7 +26,15 @@ public class Faker {
             }
             indicator.setVisible(false);
         });
-        fakeProgress.start();
-        return fakeProgress;
+        progress.start();
+
     }
+
+    public static void interrupt(){
+        if(progress != null && !progress.isInterrupted()){
+            progress.interrupt();
+        }
+    }
+
+
 }
