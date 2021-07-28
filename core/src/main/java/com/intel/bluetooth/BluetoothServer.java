@@ -95,17 +95,15 @@ public class BluetoothServer  implements Runnable {
                     break;
                 }
                 //  判断是否要读文件,并且获取文件后缀
-                if(bytes[0] == '&' && size > 1 && size == bytes[1]){
-                    byte[] bs = new byte[size - 2];
-                    for (int i = 0; i < size - 2; i++) {
-                        bs[i] = bytes[i + 2];
+                if(bytes[0] == '!' && bytes[1] == '&' ){
+                    byte[] bs = new byte[bytes[2] - 3];
+                    for (int i = 0; i < bytes[2] - 3; i++) {
+                        bs[i] = bytes[i + 3];
                     }
                     suffix = new String(bs);
                     type = 0; // 后续改为读文件
                     url = "./files/"+sdf.format(new Date())+"."+suffix;
                     fileOutputStream = new FileOutputStream(url);
-
-
                     continue;
                 }
                 // 一个字节，读取结束

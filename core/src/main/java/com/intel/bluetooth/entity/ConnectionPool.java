@@ -51,11 +51,12 @@ public class ConnectionPool {
             // 传文件开始
             // 后缀
             byte[] b2 = suffix.getBytes();
-            byte[] b = new byte[b2.length + 2];
-            b[0] = '&';
-            b[1] = (byte) b.length;
-            for (int i = 2; i < b.length; i++) {
-                b[i] = b2[i-2];
+            byte[] b = new byte[b2.length + 3];
+            b[0] = '!';
+            b[1] = '&';
+            b[2] = (byte) b.length;
+            for (int i = 3; i < b.length; i++) {
+                b[i] = b2[i - 3];
             }
             os.write(b);
             os.flush();
