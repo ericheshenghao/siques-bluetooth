@@ -125,7 +125,7 @@ public class BluetoothServer  implements Runnable {
                     os.write(bytes,0,size);
 
                     ReceiveMessage.getInstance().addMsg(friendlyName,os.toString(),"text");
-                    System.out.println(" 当前输出："+os.toString());
+                    System.out.println(" 当前输出："+os.toString("utf-8"));
                     os.reset();
                 }
 

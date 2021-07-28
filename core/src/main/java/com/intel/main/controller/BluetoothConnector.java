@@ -27,6 +27,7 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.*;
 import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.Region;
 import javafx.scene.shape.Circle;
 import javafx.scene.text.Text;
 
@@ -75,7 +76,6 @@ public class BluetoothConnector implements Initializable {
 
     @FXML
     private TextArea textSend;
-
 
     @FXML
     private Circle connectOnline;
@@ -134,7 +134,9 @@ public class BluetoothConnector implements Initializable {
 
                         Later.run(()->{
                             receiveMsg.addAll(collect);
+                            int index = receiveMsg.size();
                             receiveMsgList.setItems(receiveMsg);
+                            receiveMsgList.scrollTo(index - 1 );
                             // 点击处理
                         });
                     }
@@ -204,8 +206,14 @@ public class BluetoothConnector implements Initializable {
         });
         boolean image = FileType.isImage(suffix);
         SendMessage.getInstance().addMsg(deviceName.getText(),path,image?"image":"file");
-        AnchorPane pane = CustomImageView.build("file:" + path);
-        refreshSendList(pane);
+        Region view;
+        if(image){
+            view = CustomImageView.build("file:" + path);
+        }else{
+            view = new CustomLabelView("file:" + path);
+
+        }
+        refreshSendList(view);
     }
 
     // 发送文本
@@ -228,6 +236,7 @@ public class BluetoothConnector implements Initializable {
 
         SendMessage.getInstance().addMsg(name,text,"text");
         ReceiveTextArea area = new ReceiveTextArea(text);
+
         refreshSendList(area);
         textSend.setText("");
     }
