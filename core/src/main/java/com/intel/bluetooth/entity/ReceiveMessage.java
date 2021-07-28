@@ -31,6 +31,7 @@ public class ReceiveMessage {
         List<MessageItem> list = container.getOrDefault(deviceName, new ArrayList<>());
         if(list.size() > 10){
             list.remove(0);
+            list.remove(1);
         }
         if("image".equals(type)){
             ImageMessage imageMessage = new ImageMessage(msg);
