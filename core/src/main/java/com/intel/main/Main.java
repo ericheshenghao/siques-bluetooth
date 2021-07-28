@@ -32,6 +32,7 @@ public class Main extends Application {
 
     @Override
     public void stop() throws Exception {
+        System.exit(0);
         super.stop();
     }
 
