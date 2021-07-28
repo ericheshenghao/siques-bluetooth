@@ -20,6 +20,9 @@ import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.TextArea;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.*;
@@ -27,6 +30,7 @@ import javafx.scene.layout.AnchorPane;
 import javafx.scene.shape.Circle;
 import javafx.scene.text.Text;
 
+import java.awt.*;
 import java.io.*;
 import java.net.URL;
 import java.nio.charset.Charset;
@@ -108,7 +112,17 @@ public class BluetoothConnector implements Initializable {
                             if(s.getType().equals("image")){
                                 ImageMessage s1 = (ImageMessage) s;
                                 AnchorPane build = CustomImageView.build("file:" + s1.getUrl(), event -> {
-                                    System.out.println(s1.getUrl());
+
+                                    File file = new File(s1.getUrl());
+                                    final Desktop desktop = Desktop.isDesktopSupported() ? Desktop.getDesktop() : null;
+                                    if (desktop != null && desktop.isSupported(Desktop.Action.OPEN)) {
+                                        try {
+                                            desktop.open(file);
+                                        } catch (IOException e) {
+                                            throw new UnsupportedOperationException("Open action not supported");
+                                        }
+                                    }
+
                                 });
 
                                 return build;

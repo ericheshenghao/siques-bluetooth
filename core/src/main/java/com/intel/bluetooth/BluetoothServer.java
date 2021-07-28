@@ -102,7 +102,6 @@ public class BluetoothServer  implements Runnable {
                     suffix = new String(bs);
                     type = 0; // 后续改为读文件
                     url = "./files/"+sdf.format(new Date())+"."+suffix;
-                    File file = new File(url);
                     fileOutputStream = new FileOutputStream(url);
                     continue;
                 }

@@ -28,6 +28,7 @@ public class CustomImageView  {
         Image image = new Image(url);
         ImageView view = new  ImageView(image);
         view.setFitWidth(380);
+        view.setFitHeight(280);
         view.setPreserveRatio(true);
         AnchorPane pane = new AnchorPane();
         pane.getChildren().add(view);
