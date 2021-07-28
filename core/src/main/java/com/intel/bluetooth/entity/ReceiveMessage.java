@@ -30,7 +30,7 @@ public class ReceiveMessage {
     public void addMsg(String deviceName,String msg,String type){
         List<MessageItem> list = container.getOrDefault(deviceName, new ArrayList<>());
         if(list.size() > 10){
-            list.remove(10);
+            list.remove(0);
         }
         if("image".equals(type)){
             ImageMessage imageMessage = new ImageMessage(msg);
