@@ -114,18 +114,17 @@ public class BluetoothConnector implements Initializable {
                                 AnchorPane build = CustomImageView.build("file:" + s1.getUrl(), event -> {
 
                                     File file = new File(s1.getUrl());
-                                    Clipboard systemClipboard = Clipboard.getSystemClipboard();
-                                    HashMap<DataFormat, Object> map = new HashMap<>();
-                                    map.put(DataFormat.FILES,file);
-                                    systemClipboard.setContent(map);
-//                                    final Desktop desktop = Desktop.isDesktopSupported() ? Desktop.getDesktop() : null;
-//                                    if (desktop != null && desktop.isSupported(Desktop.Action.OPEN)) {
-//                                        try {
-//                                            desktop.open(file);
-//                                        } catch (IOException e) {
-//                                            throw new UnsupportedOperationException("Open action not supported");
-//                                        }
-//                                    }
+
+//                                    Clipboard systemClipboard = Clipboard.getSystemClipboard();
+//                                    Image image = systemClipboard.getImage();
+                                    final Desktop desktop = Desktop.isDesktopSupported() ? Desktop.getDesktop() : null;
+                                    if (desktop != null && desktop.isSupported(Desktop.Action.OPEN)) {
+                                        try {
+                                            desktop.open(file);
+                                        } catch (IOException e) {
+                                            throw new UnsupportedOperationException("Open action not supported");
+                                        }
+                                    }
 
                                 });
 

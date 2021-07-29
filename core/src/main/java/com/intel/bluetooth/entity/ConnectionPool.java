@@ -47,27 +47,30 @@ public class ConnectionPool {
         OutputStream os = pool.get(deviceName);
 
         byte[] b = new byte[1024*1024];
-         int size;
+
             // 传文件开始
             // 后缀
             byte[] sb = suffix.getBytes();
-            b[0] = '&';
-            b[1] = (byte) sb.length;
-            for (int i = 2; i < sb.length; i++) {
-                b[i] = sb[i - 2];
+            b[0] = '|';
+            b[1] = '|';
+           b[2] = '|';
+            b[3] = (byte) ( sb.length + 4);
+            for (int i = 0; i < sb.length; i++) {
+                b[i + 4] = sb[i];
             }
+            int size = sb.length + 4;
 
          while (true){
-             if (((size = is.read(b,10,b.length - 10)) == -1)) {
+             os.write(b,0,size);
+             if (((size = is.read(b)) == -1)) {
                  break;
              }
-             os.write(b,0,size);
-             b[0] = '0';
          }
             is.close();
             // 传图结束
-            b[0] = '$';
-            os.write(b);
+        os.flush();
+
+        os.write(new byte[]{'|','|','|'});
     }
 
 
