@@ -4,6 +4,7 @@ import com.intel.bluetooth.entity.ReceiveMessage;
 import com.intel.bluetooth.util.FileType;
 
 import java.io.*;
+import java.nio.charset.Charset;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
@@ -36,7 +37,7 @@ public class BluetoothServer  implements Runnable {
 
             notifier = (StreamConnectionNotifier)Connector.open(url);
 
-          new Thread(this,"handleAccept").start();
+            new Thread(this,"handleAccept").start();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -82,7 +83,7 @@ public class BluetoothServer  implements Runnable {
         String url = null;
         String suffix = null;
         try {
-              friendlyName = remoteDevice.getFriendlyName(false);
+            friendlyName = remoteDevice.getFriendlyName(false);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -95,23 +96,28 @@ public class BluetoothServer  implements Runnable {
                     break;
                 }
                 //  判断是否要读文件,并且获取文件后缀
-                if( b[0] == '&' ){
-                  byte[] bs = new byte[b[1] - 2];
-                    for (int i = 0; i < b[1] - 2; i++) {
-                        bs[i] = b[i + 2];
+                if( size > 4 && b[0] == '|' && b[1] == '|'  && b[2] == '|'   ){
+                    byte[] bs = new byte[b[3] - 4];
+                    for (int i = 0; i < b[3] - 4; i++) {
+                        bs[i] = b[i + 4];
                     }
-                    suffix = new String(bs);
+                    suffix = new String(bs,Charset.forName("utf-8"));
+                    System.out.println(suffix);
                     type = 0; // 后续改为读文件
-                    url = "./files/"+sdf.format(new Date())+"."+suffix;
+                    url = "./files/"+sdf.format(new Date())+"."+ suffix;
                     fileOutputStream = new FileOutputStream(url);
+
+                    fileOutputStream.write(b,b[3],size - b[3]);
+
+                    continue;
                 }
 
                 if(type == 0){
-                    fileOutputStream.write(b,10,size - 10);
+                    fileOutputStream.write(b,0,size);
                 }
 
                 // 一个字节，读取结束
-                if(type == 0 && b[0] == '$'){
+                if(type == 0 &&   b[size - 1] == '|' && b[size - 2] == '|'&&b[size - 3] == '|') {
                     // 读取结束
                     type = 1;
                     fileOutputStream.close();
@@ -127,7 +133,7 @@ public class BluetoothServer  implements Runnable {
 
                 if(type == 1){
                     // 将接收到的信息，与发送端的名字绑定，每一条信息只属于他的发送端
-                    os.write(b);
+                    os.write(b,0,size);
                     ReceiveMessage.getInstance().addMsg(friendlyName,os.toString("utf-8"),"text");
                     System.out.println(" 当前输出："+os.toString("utf-8"));
                     os.reset();
