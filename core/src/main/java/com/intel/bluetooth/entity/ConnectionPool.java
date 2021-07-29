@@ -46,31 +46,28 @@ public class ConnectionPool {
     public void writeOut(String deviceName, FileInputStream is, String suffix) throws IOException {
         OutputStream os = pool.get(deviceName);
 
-        byte[] bytes = new byte[1024*1024];
+        byte[] b = new byte[1024*1024];
          int size;
             // 传文件开始
             // 后缀
-            byte[] b2 = suffix.getBytes();
-            byte[] b = new byte[b2.length + 3];
-            b[0] = '!';
-            b[1] = '&';
-            b[2] = (byte) b.length;
-            for (int i = 3; i < b.length; i++) {
-                b[i] = b2[i - 3];
+            byte[] sb = suffix.getBytes();
+            b[0] = '&';
+            b[1] = (byte) sb.length;
+            for (int i = 2; i < sb.length; i++) {
+                b[i] = sb[i - 2];
             }
-            os.write(b);
-            os.flush();
+
          while (true){
-                 if (((size = is.read(bytes)) == -1)) {
-                     break;
-                 }
-                 os.write(bytes,0,size);
+             if (((size = is.read(b,10,b.length - 10)) == -1)) {
+                 break;
+             }
+             os.write(b,0,size);
+             b[0] = '0';
          }
             is.close();
             // 传图结束
-            os.flush();
-            os.write(new byte[]{'$'});
-            os.flush();
+            b[0] = '$';
+            os.write(b);
     }
 
 

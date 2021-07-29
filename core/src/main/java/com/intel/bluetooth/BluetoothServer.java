@@ -72,7 +72,7 @@ public class BluetoothServer  implements Runnable {
     SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss");
     private void readAndHandle(InputStream is, BluetoothRFCommServerConnection streamConnection){
 
-        byte[] bytes = new byte[1024*1024];
+        byte[] b = new byte[1024*1024];
         int size;
         ByteArrayOutputStream os = new ByteArrayOutputStream();
         FileOutputStream fileOutputStream = null;
@@ -91,14 +91,14 @@ public class BluetoothServer  implements Runnable {
         while(true){
             try {
                 // 读取完毕阻塞
-                if (((size = is.read(bytes)) == -1)) {
+                if (((size = is.read(b)) == -1)) {
                     break;
                 }
                 //  判断是否要读文件,并且获取文件后缀
-                if(bytes[0] == '!' && bytes[1] == '&' ){
-                    byte[] bs = new byte[bytes[2] - 3];
-                    for (int i = 0; i < bytes[2] - 3; i++) {
-                        bs[i] = bytes[i + 3];
+                if( b[0] == '&' ){
+                  byte[] bs = new byte[b[1] - 2];
+                    for (int i = 0; i < b[1] - 2; i++) {
+                        bs[i] = b[i + 2];
                     }
                     suffix = new String(bs);
                     type = 0; // 后续改为读文件
@@ -107,11 +107,11 @@ public class BluetoothServer  implements Runnable {
                 }
 
                 if(type == 0){
-                    fileOutputStream.write(bytes,0,size);
+                    fileOutputStream.write(b,10,size - 10);
                 }
 
                 // 一个字节，读取结束
-                if(type == 0 && bytes[size - 1] == '$'){
+                if(type == 0 && b[0] == '$'){
                     // 读取结束
                     type = 1;
                     fileOutputStream.close();
@@ -127,8 +127,7 @@ public class BluetoothServer  implements Runnable {
 
                 if(type == 1){
                     // 将接收到的信息，与发送端的名字绑定，每一条信息只属于他的发送端
-                    os.write(bytes,0,size);
-
+                    os.write(b);
                     ReceiveMessage.getInstance().addMsg(friendlyName,os.toString("utf-8"),"text");
                     System.out.println(" 当前输出："+os.toString("utf-8"));
                     os.reset();
