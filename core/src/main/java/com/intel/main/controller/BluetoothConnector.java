@@ -36,10 +36,8 @@ import java.awt.*;
 import java.io.*;
 import java.net.URL;
 import java.nio.charset.Charset;
-import java.util.Collection;
+import java.util.*;
 import java.util.List;
-import java.util.ResourceBundle;
-import java.util.Vector;
 import java.util.stream.Collectors;
 
 /**
@@ -94,6 +92,7 @@ public class BluetoothConnector implements Initializable {
             FXCollections.observableArrayList();
     @Override
     public void initialize(URL location, ResourceBundle resources) {
+        // 该线程监听左侧列表
         new Thread(()->{
             int before = 0;
             int after;
@@ -115,14 +114,18 @@ public class BluetoothConnector implements Initializable {
                                 AnchorPane build = CustomImageView.build("file:" + s1.getUrl(), event -> {
 
                                     File file = new File(s1.getUrl());
-                                    final Desktop desktop = Desktop.isDesktopSupported() ? Desktop.getDesktop() : null;
-                                    if (desktop != null && desktop.isSupported(Desktop.Action.OPEN)) {
-                                        try {
-                                            desktop.open(file);
-                                        } catch (IOException e) {
-                                            throw new UnsupportedOperationException("Open action not supported");
-                                        }
-                                    }
+                                    Clipboard systemClipboard = Clipboard.getSystemClipboard();
+                                    HashMap<DataFormat, Object> map = new HashMap<>();
+                                    map.put(DataFormat.FILES,file);
+                                    systemClipboard.setContent(map);
+//                                    final Desktop desktop = Desktop.isDesktopSupported() ? Desktop.getDesktop() : null;
+//                                    if (desktop != null && desktop.isSupported(Desktop.Action.OPEN)) {
+//                                        try {
+//                                            desktop.open(file);
+//                                        } catch (IOException e) {
+//                                            throw new UnsupportedOperationException("Open action not supported");
+//                                        }
+//                                    }
 
                                 });
 

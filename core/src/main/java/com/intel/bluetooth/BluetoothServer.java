@@ -104,21 +104,6 @@ public class BluetoothServer  implements Runnable {
                     type = 0; // 后续改为读文件
                     url = "./files/"+sdf.format(new Date())+"."+suffix;
                     fileOutputStream = new FileOutputStream(url);
-                    if(size > bytes[2]){
-                        fileOutputStream.write(bytes,bytes[2],size - bytes[2]);
-                        if(bytes[size - 1]=='$'){
-                            type = 1;
-                            fileOutputStream.close();
-                            //判断是否为图片还是文件
-                            boolean image = FileType.isImage(suffix);
-                            if(image){
-                                ReceiveMessage.getInstance().addMsg(friendlyName, url,"image");
-                            }else{
-                                ReceiveMessage.getInstance().addMsg(friendlyName, url,"file");
-                            }
-                        }
-                    }
-                    continue;
                 }
 
                 if(type == 0){
