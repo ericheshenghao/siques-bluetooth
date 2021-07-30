@@ -253,7 +253,7 @@ public class BluetoothConnector implements Initializable {
         if(progressIndicator.isVisible()) {
             return;
         }
-        progressIndicator.setVisible(true);
+
           Faker.fakeProgress(progressIndicator);
         new Thread(() -> {
             Later.run(()->{
@@ -288,18 +288,6 @@ public class BluetoothConnector implements Initializable {
 
     }
 
-    private void fileSending(){
-         Faker.fakeProgress(progressIndicator);
-         sendBtn.setDisable(true);
-         textSend.setDisable(true);
-    }
-
-    private void sendingFinish(){
-        Faker.interrupt();
-        sendBtn.setDisable(false);
-        textSend.setDisable(false);
-    }
-
 
     private void clintOffline(){
         sendBtn.setDisable(true);
@@ -326,7 +314,6 @@ public class BluetoothConnector implements Initializable {
         sendBtn.setDisable(true);
         connectText.setText(ConnectStatus.CONNECTING.getSt());
         deviceName.setText(name);
-        progressBar.setVisible(true);
     }
 
     private void connectFailed( ){
@@ -397,7 +384,7 @@ public class BluetoothConnector implements Initializable {
     private void startServer() {
         Thread thread = new Thread(() -> {
             BluetoothServer bluetoothServer = new BluetoothServer();
-            bluetoothServer.startServer(secretUUID);
+            bluetoothServer.startServer(secretUUID,progressBar);
         });
         thread.start();
     }

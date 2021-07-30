@@ -52,8 +52,8 @@ public class ConnectionPool {
             // 后缀
             byte[] sb = suffix.getBytes();
             b[0] = '|';
-            b[1] = '|';
-           b[2] = '|';
+            b[1] = '&';
+            b[2] = '#';
             b[3] = (byte) ( sb.length + 4);
             for (int i = 0; i < sb.length; i++) {
                 b[i + 4] = sb[i];
@@ -70,7 +70,7 @@ public class ConnectionPool {
             // 传图结束
         os.flush();
 
-        os.write(new byte[]{'|','|','|'});
+        os.write(new byte[]{'|','&','#'});
     }
 
 

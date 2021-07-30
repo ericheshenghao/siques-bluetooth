@@ -13,6 +13,7 @@ import javafx.scene.control.ProgressIndicator;
 public class Faker {
     private static Thread progress;
     public static void fakeProgress(ProgressIndicator indicator){
+        indicator.setVisible(true);
         indicator.setProgress(0);
         progress = new Thread(() -> {
             for (int i = 0; i < 125; i++) {

@@ -29,7 +29,7 @@
       <Circle fx:id="connectOffLine" fill="#ff2121" layoutX="954.0" layoutY="26.0" radius="8.0" stroke="BLACK" strokeType="INSIDE" strokeWidth="0.0" />
       <Text fx:id="connectText" layoutX="973.0" layoutY="31.0" strokeType="OUTSIDE" strokeWidth="0.0" text="未连接" />
       <Circle fx:id="connectOnline" fill="#1fff35" layoutX="954.0" layoutY="26.0" radius="8.1" stroke="WHITE" strokeType="INSIDE" strokeWidth="0.0" visible="false" />
-      <ProgressBar fx:id="progressBar" layoutX="395.0" layoutY="225.0" prefWidth="200.0" progress="0.0" visible="false" />
       <ListView fx:id="receiveMsgList" layoutX="214.0" layoutY="51.0" pickOnBounds="false" prefHeight="494.0" prefWidth="405.0" style="-fx-border-color: #F5F5F5; -fx-background-color: #F5F5F5;" />
+      <ProgressBar fx:id="progressBar" layoutX="526.0" layoutY="295.0" prefWidth="200.0" progress="0.0" visible="false" />
    </children>
 </AnchorPane>
